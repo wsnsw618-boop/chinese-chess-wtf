@@ -164,6 +164,7 @@ reports/<run>.md
 - Multi-agent 对照：[reports/agent-screen.md](reports/agent-screen.md)
 - 升变 A/B：[reports/selection-ab.md](reports/selection-ab.md)
 - 第二轮汇总：[reports/round-2-results.md](reports/round-2-results.md)
+- **v1.0.0 → v1.2.3 更新说明**：[reports/update-1.0.0-to-1.2.3.md](reports/update-1.0.0-to-1.2.3.md)
 - 普通 AI 调强记录：[reports/ai-tuning-v1.2.3.md](reports/ai-tuning-v1.2.3.md)
 - 下一轮实验：[reports/next-experiments.md](reports/next-experiments.md)
 
