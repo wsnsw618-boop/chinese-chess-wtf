@@ -2,6 +2,13 @@
 
 本项目的重要变更记录在此。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [Semantic Versioning](https://semver.org/)。
 
+## [1.2.2] - 2026-10-26
+
+### Changed
+
+- **普通 AI 调强**：从 `maxDepth 4 / 1000ms / randomize 20` 调整为 `maxDepth 5 / 1400ms / randomize 8`，减少“突然走坏棋”的观感，同时保持与困难档的差距。
+- 简单档、困难档不变；AI 说明和 README 的难度表同步。
+
 ## [1.2.1] - 2026-10-26
 
 ### Added

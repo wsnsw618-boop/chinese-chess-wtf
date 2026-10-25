@@ -12,7 +12,7 @@ export interface AIMoveResult {
 
 const SETTINGS: Record<Difficulty, { maxDepth: number; timeMs: number; randomize: number }> = {
   easy: { maxDepth: 2, timeMs: 350, randomize: 90 },
-  normal: { maxDepth: 4, timeMs: 1_000, randomize: 20 },
+  normal: { maxDepth: 5, timeMs: 1_400, randomize: 8 },
   hard: { maxDepth: 6, timeMs: 2_400, randomize: 0 },
 };
 
