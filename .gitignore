@@ -1,0 +1,19 @@
+# dependencies
+node_modules/
+
+# build output (use GitHub Pages / Releases)
+dist/
+coverage/
+.vite/
+
+# local env and logs
+.env
+.env.*
+*.log
+*.tmp
+
+# editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

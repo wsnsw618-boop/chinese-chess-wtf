@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>中国象棋WTF版 · 规则说明书 · 剧毒术士（离谱暗封剑）</title>
+<style>
+  :root {
+    --paper: #f6eedf;
+    --paper-2: #efe2c9;
+    --ink: #241a12;
+    --muted: #6e5a45;
+    --red: #a52a1f;
+    --gold: #a8792f;
+    --line: #c9b28c;
+  }
+  * { box-sizing: border-box; }
+  html { background: #d9c8ab; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background:
+      radial-gradient(circle at 12% 8%, rgba(255,255,255,.55), transparent 28%),
+      radial-gradient(circle at 86% 20%, rgba(255,255,255,.35), transparent 30%),
+      var(--paper);
+    font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
+    line-height: 1.8;
+  }
+  .rulebook {
+    max-width: 940px;
+    margin: 0 auto;
+    padding: 52px 58px 80px;
+    background: transparent;
+  }
+  .cover {
+    text-align: center;
+    padding: 20px 0 34px;
+    border-bottom: 2px solid var(--line);
+    margin-bottom: 34px;
+  }
+  .cover .kicker {
+    color: var(--gold);
+    letter-spacing: .22em;
+    font-size: 12px;
+    text-transform: uppercase;
+  }
+  .cover h1 {
+    font-size: 42px;
+    margin: 10px 0 6px;
+    letter-spacing: .06em;
+    font-weight: 800;
+  }
+  .cover h1 span { color: var(--red); }
+  .cover .sub {
+    color: var(--muted);
+    font-size: 15px;
+    margin: 0;
+  }
+  .cover .dev {
+    display: inline-block;
+    margin-top: 18px;
+    padding: 6px 16px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--muted);
+    font-size: 13px;
+    letter-spacing: .1em;
+  }
+  h2 {
+    font-size: 25px;
+    margin: 38px 0 14px;
+    padding-left: 12px;
+    border-left: 5px solid var(--red);
+    letter-spacing: .04em;
+  }
+  h3 {
+    font-size: 18px;
+    margin: 24px 0 8px;
+    color: #4b2d1a;
+  }
+  p { margin: 8px 0; }
+  ul, ol { margin: 8px 0 8px 1.4em; padding: 0; }
+  li { margin: 4px 0; }
+  .lead {
+    font-size: 16px;
+    color: #4e3a28;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,.34);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 16px 0 22px;
+  }
+  .muted { color: var(--muted); }
+  .small { font-size: 13px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 18px;
+    font-size: 14px;
+    background: rgba(255,255,255,.28);
+  }
+  th, td {
+    border: 1px solid var(--line);
+    padding: 9px 11px;
+    vertical-align: top;
+    text-align: left;
+  }
+  th {
+    background: rgba(168, 121, 47, .12);
+    font-weight: 700;
+    color: #4b2d1a;
+  }
+  .piece-name { color: var(--red); font-weight: 700; }
+  .black-name { color: #1e1a16; font-weight: 700; }
+  .tag {
+    display: inline-block;
+    padding: 1px 7px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-size: 12px;
+    color: var(--muted);
+    margin-left: 6px;
+  }
+  .callout {
+    border-left: 4px solid var(--gold);
+    background: rgba(168, 121, 47, .08);
+    padding: 12px 16px;
+    margin: 14px 0;
+    border-radius: 0 8px 8px 0;
+  }
+  .warn {
+    border-left-color: var(--red);
+    background: rgba(165, 42, 31, .06);
+  }
+  .board-diagram {
+    margin: 18px auto 24px;
+    width: min(100%, 500px);
+    border: 3px solid #6b4a2a;
+    background: #e2c48f;
+    padding: 16px 18px 12px;
+    box-shadow: 0 8px 24px rgba(65, 38, 16, .18);
+  }
+  .mini-grid {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    gap: 2px;
+  }
+  .mini-cell {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(12px, 2.5vw, 19px);
+    font-weight: 700;
+    border-radius: 50%;
+  }
+  .mini-cell.red { color: #a3261b; background: #f6e7c8; box-shadow: inset 0 0 0 1px rgba(163,38,27,.45); }
+  .mini-cell.black { color: #1c1915; background: #efe0c2; box-shadow: inset 0 0 0 1px rgba(28,25,21,.4); }
+  .mini-cell.empty { background: transparent; box-shadow: none; }
+  .mini-river {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: #79522c;
+    font-size: 12px;
+    letter-spacing: .45em;
+    padding: 2px 0;
+    border-top: 1px solid rgba(110,74,40,.35);
+    border-bottom: 1px solid rgba(110,74,40,.35);
+    margin: 3px 0;
+  }
+  .diagram-caption {
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 8px;
+  }
+  .timeline {
+    display: grid;
+    gap: 8px;
+    margin: 16px 0;
+  }
+  .timeline-step {
+    display: grid;
+    grid-template-columns: 34px 1fr;
+    gap: 12px;
+    align-items: start;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,.28);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .timeline-num {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--red);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .timeline-step strong { display: block; margin-bottom: 2px; }
+  .timeline-step p { margin: 0; font-size: 14px; color: #4e3a28; }
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .card {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 14px;
+    background: rgba(255,255,255,.28);
+  }
+  .card h4 { margin: 0 0 6px; font-size: 15px; color: #4b2d1a; }
+  .card p { margin: 4px 0; font-size: 14px; }
+  .footer {
+    margin-top: 44px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: .12em;
+  }
+  .toc {
+    columns: 2;
+    column-gap: 28px;
+    font-size: 14px;
+    color: #4e3a28;
+  }
+  .toc a { color: inherit; text-decoration: none; }
+  .toc a:hover { color: var(--red); }
+  code {
+    font-family: "Cascadia Code", "Consolas", monospace;
+    background: rgba(75,45,26,.08);
+    padding: 1px 4px;
+    border-radius: 4px;
+    font-size: 13px;
+  }
+  .kbd {
+    display: inline-block;
+    border: 1px solid var(--line);
+    border-bottom-width: 2px;
+    border-radius: 5px;
+    padding: 0 5px;
+    font-size: 12px;
+    background: rgba(255,255,255,.4);
+  }
+  @media (max-width: 700px) {
+    .rulebook { padding: 28px 20px 50px; }
+    .cover h1 { font-size: 30px; }
+    .two-col { grid-template-columns: 1fr; }
+    .toc { columns: 1; }
+  }
+  @media print {
+    @page { size: A4; margin: 16mm 15mm; }
+    html, body { background: #fff !important; }
+    .rulebook { max-width: none; padding: 0; }
+    .cover { padding-top: 0; }
+    h2 { break-after: avoid; page-break-after: avoid; }
+    h3 { break-after: avoid; page-break-after: avoid; }
+    table, .board-diagram, .timeline-step, .card, .callout { break-inside: avoid; page-break-inside: avoid; }
+    .footer { break-before: avoid; }
+    a { color: inherit; text-decoration: none; }
+  }
+</style>
+</head>
+<body>
+<main class="rulebook">
+  <header class="cover">
+    <div class="kicker">CHINESE CHESS · WTF EDITION</div>
+    <h1>中国象棋<span>WTF</span>版</h1>
+    <p class="sub">虎豹象奴妖狼霸 · 一场不讲道理的象棋</p>
+    <div class="dev">开发者：剧毒术士（离谱暗封剑） · 规则说明书 v1.0</div>
+  </header>
+
+  <div class="lead">
+    <strong>一句话规则：</strong>双方各有一套被“WTF 化”的棋子。红方是霸、虎、豹、象、奴、妖、狼；黑方是王、坦、骑、牛、卫、巫、勇。目标仍是让对方的霸/王无路可走，但在本作中，<strong>吃掉对方最后一个非王子也会立即获胜</strong>；没有和棋，只有“生死斗”。
+  </div>
+
+  <nav class="toc">
+    <p><a href="#s1">1. 棋盘与初始局面</a></p>
+    <p><a href="#s2">2. 行棋、将军与胜负</a></p>
+    <p><a href="#s3">3. 棋子走法总表</a></p>
+    <p><a href="#s4">4. 霸与王的特殊能力</a></p>
+    <p><a href="#s5">5. 过河、升变与龙/仙</a></p>
+    <p><a href="#s6">6. 长将、长捉与三次重复</a></p>
+    <p><a href="#s7">7. 生死斗</a></p>
+    <p><a href="#s8">8. 限制回合与边界判定</a></p>
+    <p><a href="#s9">9. 记谱、操作与 AI</a></p>
+    <p><a href="#s10">10. FAQ</a></p>
+  </nav>
+
+  <h2 id="s1">1. 棋盘与初始局面</h2>
+  <p>棋盘为 9 路 × 10 行。红方在下，黑方在上。中间是“楚河汉界”。双方各有九宫：红方 d1–f3，黑方 d8–f10（图中按从下到上 1–10 行编号）。</p>
+
+  <div class="board-diagram" aria-label="中国象棋WTF版初始局面">
+    <div class="mini-grid">
+      <div class="mini-cell black">坦</div><div class="mini-cell black">骑</div><div class="mini-cell black">牛</div><div class="mini-cell black">卫</div><div class="mini-cell black">王</div><div class="mini-cell black">卫</div><div class="mini-cell black">牛</div><div class="mini-cell black">骑</div><div class="mini-cell black">坦</div>
+      <div class="mini-cell empty"></div><div class="mini-cell empty"></div><div class="mini-cell empty"></div><div class="mini-cell empty"></div><div class="mini-cell empty"></div><div class="mini-cell empty"></div><div class="mini-cell empty"></div><div class="mini-cell empty"></div><div class="mini-cell empty"></div>
+      <div class="mini-cell empty"></div><div class="mini-cell black">巫</div><div class="mini-cell empty"></div><div class="mini-cell empty"></div><div class="mini-cell empty"></div><div class="mini-cell empty"></div><div class="mini-cell empty"></div><div class="mini-cell black">巫</div><div class="mini-cell empty"></div>
+      <div class="mini-cell black">勇</div><div class="mini-cell empty"></div><div class="mini-cell black">勇</div><div class="mini-cell empty"></div><div class="mini-cell black">勇</div><div class="mini-cell empty"></div><div class="mini-cell black">勇</div><div class="mini-cell empty"></div><div class="mini-cell black">勇</div>
+      <div class="mini-cell empty"></div><div class="mini-cell empty"></div><div class="mini-cell empty"></div><div class="mini-cell empty"></div><div class="mini-cell empty"></div><div class="mini-cell empty"></div><div class="mini-cell empty"></div><div class="mini-cell empty"></div><div class="mini-cell empty"></div>
+      <div class="mini-river">楚 河 &nbsp;&nbsp;&nbsp;&nbsp; 汉 界</div>
+      <div class="mini-cell red">狼</div><div class="mini-cell empty"></div><div class="mini-cell red">狼</div><div class="mini-cell empty"></div><div class="mini-cell red">狼</div><div class="mini-cell empty"></div><div class="mini-cell red">狼</div><div class="mini-cell empty"></div><div class="mini-cell red">狼</div>
+      <div class="mini-cell empty"></div><div class="mini-cell red">妖</div><div class="mini-cell empty"></div><div class="mini-cell empty"></div><div class="mini-cell empty"></div><div class="mini-cell empty"></div><div class="mini-cell empty"></div><div class="mini-cell red">妖</div><div class="mini-cell empty"></div>
+      <div class="mini-cell empty"></div><div class="mini-cell empty"></div><div class="mini-cell empty"></div><div class="mini-cell empty"></div><div class="mini-cell empty"></div><div class="mini-cell empty"></div><div class="mini-cell empty"></div><div class="mini-cell empty"></div><div class="mini-cell empty"></div>
+      <div class="mini-cell red">虎</div><div class="mini-cell red">豹</div><div class="mini-cell red">象</div><div class="mini-cell red">奴</div><div class="mini-cell red">霸</div><div class="mini-cell red">奴</div><div class="mini-cell red">象</div><div class="mini-cell red">豹</div><div class="mini-cell red">虎</div>
+    </div>
+    <div class="diagram-caption">初始局面：红方在下，黑方在上；红方先行。</div>
+  </div>
+
+  <p><strong>红方：</strong>霸 ×1、虎 ×2、豹 ×2、象 ×2、奴 ×2、妖 ×2、狼 ×5。</p>
+  <p><strong>黑方：</strong>王 ×1、坦 ×2、骑 ×2、牛 ×2、卫 ×2、巫 ×2、勇 ×5。</p>
+  <p class="muted small">初始局面没有“兵”和“卒”，红方是狼，黑方是勇。狼/勇过河前只能向前一步；过河后增加左、右、斜前左、斜前右，共 5 个方向；名称始终不变。</p>
+
+  <h2 id="s2">2. 行棋、将军与胜负</h2>
+  <ul>
+    <li>红方先行，双方轮流走一步。棋子走到空位、吃对方棋子，均算一步。</li>
+    <li>任何走法都不得让己方霸/王处于被将军状态，也不得形成“对面笑”（双方霸/王在同一路且中间无子）。</li>
+    <li>被将军时必须应将；无法应将即将死，判负。</li>
+    <li>无任何合法走法（无论是否被将军）均判负，称为“困毙”。</li>
+    <li><strong>单王判负（全局）：</strong>一方只剩霸/王时立即判负，不等下一手。因此吃掉对方最后一个非王子也会立即获胜，即使对方下一手能反吃。</li>
+    <li><strong>没有和棋。</strong>不设求和、三次重复和棋、六十回合和棋或子力不足和棋。重复局面与僵局由“生死斗”处理。</li>
+  </ul>
+
+  <div class="callout warn">
+    <strong>重要：</strong>“单王判负”是全局规则。红霸吃掉自己最后一个奴、导致自己只剩霸时，会立即判负。霸 + 一奴在正常规则下无法将死对方；不要用“吃奴”来做无谓的牺牲。
+  </div>
+
+  <h2 id="s3">3. 棋子走法总表</h2>
+  <table>
+    <thead>
+      <tr><th>红 / 黑</th><th>走法</th><th>关键限制</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="piece-name">霸</span> / <span class="black-name">王</span></td>
+        <td>不发动特殊能力时，在九宫内上下左右走一格；可吃对方棋子。</td>
+        <td>不能斜走；不能送将；不能出九宫。</td>
+      </tr>
+      <tr>
+        <td><span class="piece-name">虎</span> / <span class="black-name">坦</span></td>
+        <td>车走法：横竖任意格；另可斜向走一格。均可吃子。</td>
+        <td>不能越子。</td>
+      </tr>
+      <tr>
+        <td><span class="piece-name">豹</span> / <span class="black-name">骑</span></td>
+        <td>马走法（2+1），<strong>不受蹩马腿限制</strong>。</td>
+        <td>不能吃己子；到达对方底线当步升变为龙/仙。</td>
+      </tr>
+      <tr>
+        <td><span class="piece-name">象</span> / <span class="black-name">牛</span></td>
+        <td>斜向走 1 格或 2 格；可过河；走 2 格时中点必须为空。</td>
+        <td>不能吃己子；<strong>不再升变</strong>；受色格限制。</td>
+      </tr>
+      <tr>
+        <td><span class="piece-name">奴</span> / <span class="black-name">卫</span></td>
+        <td>限九宫内，直线或斜线走 1 格或 2 格；走 2 格时中点必须为空。</td>
+        <td>不能出宫；不能吃己子；不能越子。</td>
+      </tr>
+      <tr>
+        <td><span class="piece-name">妖</span> / <span class="black-name">巫</span></td>
+        <td>不吃子时像车一样沿横竖滑行；吃子时必须正好隔 1 个或 2 个棋子，吃掉越过炮架后的第一个敌子。</td>
+        <td>不吃子不能越子；不能吃己子；吃子时目标必须是敌子。</td>
+      </tr>
+      <tr>
+        <td><span class="piece-name">狼</span> / <span class="black-name">勇</span></td>
+        <td>初始即为狼/勇。过河前只向前走一格；过河后可以向前、左、右、斜前左、斜前右共 5 个方向走/吃；不能后退。</td>
+        <td>只能走一格；不能吃己子；名称始终不变，不再升变。</td>
+      </tr>
+      <tr>
+        <td><span class="piece-name">龙</span> / <span class="black-name">仙</span></td>
+        <td>同时拥有“豹/骑”的无蹩腿马步和“象/牛”的斜 1–2 格走法；斜 2 格中点必须为空。</td>
+        <td>不能吃己子；可过河；不再升变。</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <strong>妖/巫的“隔两子”：</strong>如果一条线上依次是“炮、甲、乙、丙”，炮可以隔甲吃乙（一个炮架），也可以隔甲、乙吃丙（两个炮架）。如果乙是己方棋子，仍然可以作为第二个炮架，但丙必须是敌子。炮不能吃第一个挡在面前的子。
+  </div>
+
+  <h2 id="s4">4. 霸与王的特殊能力</h2>
+  <h3>4.1 霸：吃奴换位</h3>
+  <ul>
+    <li>霸可以吃掉九宫内<strong>任意位置</strong>的己方奴，并占据该格；消耗一步。</li>
+    <li>吃奴是“传送式”的：不看路径，只看落点是否合法。落点不能送将、不能形成对面笑、不能落在他方攻击格。</li>
+    <li>没有奴时，霸只能按普通霸走法走直一格。</li>
+    <li>霸吃奴没有冷却，理论上最多用两次。每吃一个奴，己方就少一个非王子；如果这是最后一个，立即单王判负。</li>
+  </ul>
+  <h3>4.2 王：与卫互换</h3>
+  <ul>
+    <li>王可以与九宫内<strong>任意位置</strong>的己方卫互换位置；消耗一步。</li>
+    <li>卫不死，移到王原来的格子。卫可能被对方攻击，这是允许的。</li>
+    <li><strong>不能连续换：</strong>换位后，黑方必须间隔一步（走任意一步黑方着法，王也可以走直一格）才能再次换位；不能连续两回合换位。若黑方没有任何合法着法，按困毙判负。</li>
+    <li>换位落点必须合法：不能送将、不能形成对面笑。</li>
+  </ul>
+  <div class="callout">
+    <strong>王的能力也会被“变身”打断：</strong>卫如果在生死斗中升变为虎/坦/龙/仙，就不再是卫，王不能再与它换位。霸的奴同理。
+  </div>
+
+  <h2 id="s5">5. 过河、升变与龙/仙</h2>
+  <h3>5.1 狼/勇过河</h3>
+  <p>红方狼从第 4 行走到第 5 行即过河，黑方勇从第 7 行走到第 6 行即过河。过河前只能向前走一格；过河后增加左、右、斜前左、斜前右，共 5 个方向。名称始终不变，也不会升变成其他棋子。到达底线后只能按 5 向走法在底线活动。</p>
+  <h3>5.2 豹/骑升变</h3>
+  <ul>
+    <li>红豹到达黑方底线（第 10 行）当步升变为<strong>龙</strong>；黑骑到达红方底线（第 1 行）当步升变为<strong>仙</strong>。</li>
+    <li>升变可由空步或吃子触发；升变永久，离开底线仍保留龙/仙。</li>
+    <li>龙/仙 = 无蹩腿马步 + 斜 1–2 格（2 格中点不能有子）。</li>
+  </ul>
+  <h3>5.3 象/牛不升变</h3>
+  <p>象/牛到达底线仍是象/牛。它们可以过河、斜 1–2 格，但不能升变为龙/仙。只有在“生死斗”选子阶段，象/牛才可能被选择变成虎/龙（见第 7 节）。</p>
+
+  <h2 id="s6">6. 长将、长捉与三次重复</h2>
+  <p>本作禁止长将、长捉。程序采用以下确定性判定，规则书与程序行为一致：</p>
+  <ol>
+    <li>维护局面历史：棋盘、行棋方、王换卫冷却。</li>
+    <li>同一局面第三次出现时，检查循环内的着法。</li>
+    <li><strong>长将：</strong>若某一方在循环内自己每一步都将军，该方判负。</li>
+    <li><strong>长捉：</strong>若某一方在循环内自己每一步都新造成对同一个敌方非王棋子的直接吃子威胁，该方判负。</li>
+    <li>若双方都构成，判先形成循环的一方负。</li>
+    <li>若都不构成，进入 3 步生死斗倒计时。</li>
+    <li>优先级：将死 / 单王 &gt; 长将 / 长捉判负 &gt; 三次重复生死斗。</li>
+  </ol>
+  <p class="muted small">长捉采用简化判定：只检查“这一步新造成的、下一步可合法吃同一子”的直接威胁；不实现棋协规则中关于有根子、可交换、做根等全部例外。</p>
+
+  <h2 id="s7">7. 生死斗</h2>
+  <p>“生死斗”取代原版象棋的求和，是本作唯一的和棋替代机制。它让双方在残局/重复局面中获得一次超级子升级，然后继续对局，直到分出胜负。</p>
+
+  <h3>7.1 触发条件</h3>
+  <table>
+    <thead><tr><th>触发</th><th>说明</th><th>是否等 3 步</th></tr></thead>
+    <tbody>
+      <tr><td>双方均不大于 5 子</td><td>含霸/王。首次出现时开始倒计时。</td><td>是，3 个半回合</td></tr>
+      <tr><td>同一局面三次重复</td><td>从第三次重复出现时开始倒计时。</td><td>是，3 个半回合</td></tr>
+      <tr><td>双方虎/坦/龙/仙均被吃</td><td>只在已经进入过至少一次生死斗后生效；包括初始车、豹/骑升变和生死斗变身出的所有超级子。</td><td>立即进入</td></tr>
+      <tr><td>双方同意提前进入</td><td>只允许在第一次生死斗之前；双方都确认才生效。</td><td>立即进入</td></tr>
+    </tbody>
+  </table>
+
+  <p class="muted small">防僵死保护：连续 120 个半回合无吃子、无狼/勇移动、无升变时，程序自动进入 3 步生死斗倒计时。这条保护用于保证“禁止和棋”的对局最终能够结束。</p>
+
+  <h3>7.2 3 步倒计时</h3>
+  <p>“3 步”= 3 个半回合，不是双方各 3 步。从条件首次出现的瞬间开始：轮到的一方走 2 步，另一方走 1 步；3 步结束后，走 1 步的一方先选升变，另一方后选。</p>
+
+  <div class="timeline">
+    <div class="timeline-step"><div class="timeline-num">1</div><div><strong>条件首次出现</strong><p>双方≤5 子或三次重复。开始 3 步倒计时；期间游戏正常继续。</p></div></div>
+    <div class="timeline-step"><div class="timeline-num">2</div><div><strong>共走 3 个半回合</strong><p>轮到的一方走 2 步，另一方走 1 步。若期间出现将死/单王/长将判负，游戏立即结束，生死斗取消。</p></div></div>
+    <div class="timeline-step"><div class="timeline-num">3</div><div><strong>先选方选子</strong><p>走 1 步的一方先选，公开选择最多两个非王棋子，变为虎/坦或龙/仙；确认后不得反悔。</p></div></div>
+    <div class="timeline-step"><div class="timeline-num">4</div><div><strong>后选方选子</strong><p>看到对方选择后再选。双方各最多两个。</p></div></div>
+    <div class="timeline-step"><div class="timeline-num">5</div><div><strong>先选方先走</strong><p>接下来的红黑各一步内，双方都不能用刚升变的棋子将死对方；其余无限制。之后限制解除。</p></div></div>
+  </div>
+
+  <h3>7.3 选子规则</h3>
+  <ul>
+    <li>每方最多选 2 个<strong>非王棋子</strong>，可以选 0、1、2 个。</li>
+    <li>红方目标：虎 或 龙；黑方目标：坦 或 仙。</li>
+    <li>可选的棋子包括：虎/坦、豹/骑、象/牛、奴/卫、妖/巫、狼/勇。</li>
+    <li>已经是超级子的棋子也可以改变为另一种超级子（例如虎→龙），但同类型转换无效果，界面会禁止。</li>
+    <li>奴/卫升变后彻底失去原属性：不再是奴/卫，可以出宫、过河，王/霸不能再使用它。</li>
+    <li>升变不消耗步数，是生死斗开始前的选择动作。</li>
+  </ul>
+
+  <h3>7.4 限制回合</h3>
+  <ul>
+    <li>升变完成后的下一回合 = 先选方走一步 + 后选方走一步，共两步。</li>
+    <li>这一回合内，<strong>双方均不能用刚升变的棋子杀王</strong>（即将死）。</li>
+    <li>“其余无限制”按字面实现：新子可以吃成单王、可以控制逃路让旧子将死、可以将军、可以吃子、可以做炮架；旧子可以正常将死。</li>
+    <li>如果升变使<strong>当前行棋方</strong>被将死：立即判对方获胜。升变不能使尚未行棋的一方处于将军状态；若某个选择会形成这种非法局面，程序会拒绝该选择并要求重选。</li>
+  </ul>
+
+  <h3>7.5 再次触发</h3>
+  <ul>
+    <li>第一次生死斗之后，“双方同意提前进入”不再可用。</li>
+    <li>之后只能靠：双方再次均不大于 5 子；三次重复；双方虎/坦/龙/仙均被吃。</li>
+    <li>“虎坦龙仙均被吃”包括初始的 2 个虎/坦、豹/骑升变出的龙/仙、生死斗中变身出的所有超级子，以及双方所有颜色。</li>
+    <li>每次生死斗仍然最多升变 2 子；没有全局次数上限。</li>
+  </ul>
+
+  <h2 id="s8">8. 限制回合与边界判定</h2>
+  <p>以下判定是程序的实际行为，目的是让规则可执行、可测试：</p>
+  <ul>
+    <li><strong>“不能杀王”只限制将死，不限制吃成单王。</strong>新子吃掉对方最后一个非王子，仍会立即触发单王判负，这是允许的。</li>
+    <li><strong>新子可以掩护旧子将死。</strong>只要最后一步是由旧子完成将死，就算合法。</li>
+    <li><strong>升变不能使尚未行棋的一方处于将军状态；</strong>若某个选择会这样，程序会拒绝并要求重选。升变若使当前行棋方被将死，立即判对方获胜。</li>
+    <li><strong>限制回合内如果无合法着法</strong>，按困毙判负。</li>
+    <li><strong>单王判负是全局的</strong>，不只在生死斗内生效。</li>
+    <li><strong>防御性处理：</strong>理论上不会出现双方同时单王；若程序遇到，判刚走完最后一手的一方获胜。</li>
+  </ul>
+
+  <h2 id="s9">9. 记谱、操作与 AI</h2>
+  <h3>9.1 记谱</h3>
+  <p>本作使用坐标记谱，避免传统记谱在多种同型棋子下的歧义。例如：</p>
+  <ul>
+    <li><code>虎 a1→a5</code>：红虎从 a1 走到 a5。</li>
+    <li><code>妖 e3×e8</code>：红妖吃掉 e8 的棋子。</li>
+    <li><code>王 e10↔卫 f10</code>：黑王与 f10 的卫换位。</li>
+    <li><code>霸 e1→d1（吃奴）</code>：红霸吃掉 d1 的奴并占据该格。</li>
+    <li><code>豹 a8→b10 = 龙</code>：红豹升变为龙。</li>
+  </ul>
+  <h3>9.2 操作</h3>
+  <ul>
+    <li>点击己方棋子查看合法落点；点击落点落子。</li>
+    <li><span class="kbd">新局</span> 重开；<span class="kbd">悔棋</span> 回退；<span class="kbd">认输</span> 结束；<span class="kbd">翻转棋盘</span> 切换视角。</li>
+    <li><span class="kbd">规则</span> 打开本说明书；<span class="kbd">AI 说明</span> 查看搜索与评估；<span class="kbd">设置</span> 开关音效与坐标。</li>
+    <li>人机模式可选执红/执黑与三档难度；AI 思考时棋盘会锁定。</li>
+  </ul>
+  <h3>9.3 AI 说明</h3>
+  <p>AI 使用 Alpha-Beta 搜索 + 迭代加深 + 静态搜索。评估函数综合子力、位置、王安全、最后一个非王子、升变潜力与生死斗变身价值。难度：</p>
+  <table>
+    <thead><tr><th>难度</th><th>搜索</th><th>时间</th><th>特点</th></tr></thead>
+    <tbody>
+      <tr><td>简单</td><td>深度 2</td><td>约 0.35 秒</td><td>会犯错，适合新手</td></tr>
+      <tr><td>普通</td><td>深度 4</td><td>约 1 秒</td><td>基本战术，能处理升变与生死斗</td></tr>
+      <tr><td>困难</td><td>迭代加深至深度 6</td><td>约 2.4 秒</td><td>更强的战术组合，仍保证不超时</td></tr>
+    </tbody>
+  </table>
+  <p class="muted small">AI 不是大师水平；长将/长捉采用简化判定；所有难度都只走合法着法。</p>
+
+  <h2 id="s10">10. FAQ</h2>
+  <h3>Q1. 霸可以吃九宫内任意位置的奴吗？</h3>
+  <p>可以。只看落点是否合法，不看路径。吃奴消耗一步，奴被移除。</p>
+  <h3>Q2. 王可以连续和卫换位吗？</h3>
+  <p>不能。换位后黑方必须间隔一步（走任意一步黑方着法）才能再次换位，不能连续两回合换位。</p>
+  <h3>Q3. 象/牛能升变成龙/仙吗？</h3>
+  <p>正常走到底线不能。只有生死斗选子阶段，象/牛才可以被选择变成虎/龙；这是生死斗的规则，不是底线升变。</p>
+  <h3>Q4. 新升变的棋子可以吃成单王吗？</h3>
+  <p>可以。限制回合只禁止“用新子将死”，没有禁止吃成单王。新子吃掉对方最后一个非王子，立即获胜。</p>
+  <h3>Q5. 升变本身形成将死怎么办？</h3>
+  <p>升变不能使尚未行棋的一方处于将军/将死状态；若某个选择会这样，界面会拒绝并要求重选。若后选方的升变使当前行棋方被将死，立即判后选方获胜。</p>
+  <h3>Q6. “虎坦龙仙均被吃”包括初始车吗？</h3>
+  <p>包括。初始的红虎/黑坦、豹/骑升变的龙/仙、生死斗变身出的所有超级子，全部被吃后才满足条件。</p>
+  <h3>Q7. 单王判负是全局的吗？</h3>
+  <p>是。一方只剩霸/王时立即判负，不等下一手；吃掉对方最后一个非王子立即获胜。</p>
+  <h3>Q8. 三次重复的三步倒计时怎么算？</h3>
+  <p>从触发局面首次出现开始，共 3 个半回合：轮到的一方走 2 步，另一方走 1 步。之后走 1 步的一方先选升变、先走。</p>
+  <h3>Q9. 双方同意提前生死斗只能用一次吗？</h3>
+  <p>是。只允许在第一次生死斗之前使用；之后的再次触发只能靠“≤5 子/三次重复”或“虎坦龙仙均被吃”。</p>
+  <h3>Q10. 为什么没有和棋？</h3>
+  <p>本作以“生死斗 + 单王判负”替代和棋，保证每局最终分出胜负。长将/长捉判负、三次重复触发生死斗、单王判负共同构成终止机制。</p>
+
+  <div class="callout">
+    <strong>设计说明：</strong>本作不是标准象棋的平衡补丁，而是一个“规则被彻底改写”的奇幻变体。它的核心张力是：超级子很强，但单王判负让每一个非王子都变成“生命 token”；生死斗让残局拥有第二次生命，也让“保留低价值子”成为一种战略。
+  </div>
+
+  <footer class="footer">
+    中国象棋WTF版 · 开发者：剧毒术士（离谱暗封剑） · 规则说明书 v1.0 · MIT License<br />
+    本地离线游戏 · 规则已冻结 · 禁止和棋
+  </footer>
+</main>
+</body>
+</html>

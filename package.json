@@ -1,0 +1,39 @@
+{
+  "name": "chinese-chess-wtf",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "中国象棋WTF版 - 开发者：剧毒术士（离谱暗封剑）",
+  "license": "MIT",
+  "author": "剧毒术士（离谱暗封剑）",
+  "keywords": [
+    "xiangqi",
+    "chinese-chess",
+    "game",
+    "typescript",
+    "vite",
+    "web-game"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 8000",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 8000",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "serve": "node scripts/serve.mjs",
+    "smoke": "node scripts/ui-smoke.mjs",
+    "pdf": "node scripts/make-pdf.mjs",
+    "package": "npm run build && npm run pdf && node scripts/package.mjs"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.64.1",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.4",
+    "vite-plugin-singlefile": "^2.3.0",
+    "vitest": "^4.0.15"
+  }
+}
