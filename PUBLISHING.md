@@ -85,15 +85,16 @@ git push -u origin main
 ## 7. 发布 Release
 
 ```powershell
-git tag -a v1.0.0 -m "中国象棋WTF版 v1.0.0"
-git push origin v1.0.0
+git tag -a v1.1.0 -m "中国象棋WTF版 v1.1.0"
+git push origin v1.1.0
 ```
 
-在 GitHub 的 Releases 页面创建 `v1.0.0`，附加：
+在 GitHub 的 Releases 页面创建 `v1.1.0`，附加：
 
 - `dist/game.html`
 - `dist/中国象棋WTF版.html`
 - `中国象棋WTF版-规则说明书.pdf`
+- `release/Chinese-Chess-WTF-v1.1.0-Windows.zip`（如果生成了分享包）
 - 可选：`启动游戏.bat`
 
 这些文件适合不想安装 Node.js 的玩家。

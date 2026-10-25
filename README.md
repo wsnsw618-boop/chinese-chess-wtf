@@ -131,6 +131,36 @@ AI 会在同分着法中随机选择；不是大师水平，但不会走出非�
 
 ---
 
+## 模拟与平衡实验
+
+项目内置无界面自对弈工具，可以批量跑局、输出 JSONL 和平衡/多样性报告：
+
+```powershell
+npm run simulate -- --games 200 --red search:2:60 --black search:2:60 --seed 20261025 --out sim/results/pilot-001 --report reports/pilot-001.md
+```
+
+或直接复现 200 局 pilot：
+
+```powershell
+npm run simulate:pilot
+```
+
+输出：
+
+```text
+sim/results/<run>/config.json
+sim/results/<run>/games.jsonl
+sim/results/<run>/summary.json
+reports/<run>.md
+```
+
+当前首份报告：[reports/pilot-001.md](reports/pilot-001.md)。
+`sim/results/` 不提交；报告可以提交到 `reports/`。
+
+注意：AI 自对弈能发现平衡、多样性、节奏和规则漏洞，**不能替代人类试玩**。正式结论至少需要 2000+ 局、多档 agent 和 5–10 人试玩。
+
+---
+
 ## 开源与许可
 
 本项目使用 **[MIT License](LICENSE)**。
@@ -174,6 +204,7 @@ npm run test       # Vitest 单元测试
 npm run typecheck  # TypeScript 检查
 npm run build      # 类型检查 + 单文件构建
 npm run smoke      # UI 冒烟测试（需先运行 npm run dev）
+npm run simulate   # 无界面批量自对弈
 npm run package    # 构建 + 生成 PDF + 打包单文件
 ```
 
@@ -207,6 +238,9 @@ src/
   tests/      # Vitest 单元测试
 public/       # favicon
 scripts/      # 本地服务器、浏览器测试脚本
+sim/          # 无界面自对弈工具与说明
+reports/      # 可提交的平衡/多样性报告
+release/      # Windows 分享包（不提交）
 dist/         # 构建产物（不提交）
 .github/      # CI、GitHub Pages、Issue/PR 模板
 LICENSE       # MIT

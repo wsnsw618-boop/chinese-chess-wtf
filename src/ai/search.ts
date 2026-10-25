@@ -27,6 +27,8 @@ export interface SearchOptions {
   timeMs: number;
   /** Randomize among near-best root moves, in centipawns. */
   randomize?: number;
+  /** Injectable RNG for reproducible simulations/tests. */
+  rng?: () => number;
   restriction?: SearchRestriction;
 }
 
@@ -110,7 +112,8 @@ class Search {
       const margin = this.opts.randomize;
       const candidates = lastScores.filter((entry) => entry.score >= bestScore - margin);
       if (candidates.length > 1) {
-        const pick = candidates[Math.floor(Math.random() * candidates.length)];
+        const rng = this.opts.rng ?? Math.random;
+        const pick = candidates[Math.floor(rng() * candidates.length)];
         bestMove = pick.move;
         bestScore = pick.score;
       }
@@ -277,11 +280,15 @@ export function findBestMove(pos: Position, opts: SearchOptions): SearchResult {
   return new Search(pos.clone(), opts).run();
 }
 
-export function randomLegalMove(pos: Position, restriction?: SearchRestriction): Move | null {
+export function randomLegalMove(
+  pos: Position,
+  restriction?: SearchRestriction,
+  rng: () => number = Math.random,
+): Move | null {
   const moves = generateAllLegalMoves(pos, {
     forbidNewPieceMate: restriction?.forbidNewPieceMate,
     newlyTransformedIds: restriction?.newlyTransformedIds,
   });
   if (!moves.length) return null;
-  return moves[Math.floor(Math.random() * moves.length)];
+  return moves[Math.floor(rng() * moves.length)];
 }

@@ -94,11 +94,29 @@ try {
     d.game.startDuelByAgreement();
   });
   await page.waitForTimeout(800);
-  assert.match(await page.locator('.modal-title').textContent(), /生死斗/);
-  await page.locator('.choice-card').first().locator('.target-btn').first().click();
-  await page.locator('.duel-select-footer .primary-btn').click();
-  await page.waitForTimeout(700);
-  assert.match(await page.locator('.modal-title').textContent(), /黑方选子/);
+  const dockTitle = page.locator('#duel-dock .duel-dock-title strong');
+  assert.match(await dockTitle.textContent(), /红方选子/);
+
+  // Select a candidate directly on the board, then choose its target in the dock.
+  await clickSquare(page, 2, 4);
+  assert.match(await page.locator('#duel-dock .duel-focus-name').textContent(), /c5/);
+  await page.locator('#duel-dock .duel-focus-targets .target-btn').first().click();
+  assert.match(
+    (await page.locator('#duel-dock .duel-chip-text').innerText()).replace(/\s+/g, ''),
+    /c5→虎/,
+  );
+
+  // Minimize and restore without losing the selection.
+  await page.locator('#duel-dock .duel-dock-toggle').click();
+  await page.waitForTimeout(120);
+  assert.equal(await page.locator('#duel-dock').evaluate((el) => el.classList.contains('collapsed')), true);
+  await page.locator('#duel-dock .duel-dock-toggle').click();
+  await page.waitForTimeout(120);
+  assert.equal(await page.locator('#duel-dock').evaluate((el) => el.classList.contains('collapsed')), false);
+
+  await page.locator('#duel-confirm').click();
+  await page.waitForTimeout(800);
+  assert.match(await page.locator('#duel-dock .duel-dock-title strong').textContent(), /黑方选子/);
 
   assert.deepEqual(errors, [], `page errors: ${errors.join('; ')}`);
   console.log('UI smoke test passed.');

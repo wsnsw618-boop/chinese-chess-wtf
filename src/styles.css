@@ -1212,6 +1212,252 @@ button:disabled {
   font-size: 12px;
 }
 
+/* Board-first duel dock */
+
+.duel-dock {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 900;
+  width: min(400px, calc(100vw - 24px));
+  max-height: min(72vh, 640px);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(214, 178, 112, 0.38);
+  border-radius: 16px;
+  background:
+    linear-gradient(155deg, rgba(46, 31, 18, 0.98), rgba(17, 11, 7, 0.99));
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.58),
+    0 0 0 1px rgba(255, 226, 170, 0.05) inset;
+  color: var(--cream);
+  animation: modalIn 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.duel-dock.collapsed {
+  width: min(340px, calc(100vw - 24px));
+}
+
+.duel-dock-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 15px;
+  border-bottom: 1px solid var(--line);
+}
+
+.duel-dock.collapsed .duel-dock-head {
+  border-bottom: 0;
+}
+
+.duel-dock-title {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.duel-dock-title strong {
+  font-family: "KaiTi", "STKaiti", "SimSun", serif;
+  font-size: 20px;
+  color: #f4dfb8;
+  line-height: 1.1;
+}
+
+.duel-dock-toggle {
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+  padding: 6px 9px;
+  font-size: 11px;
+}
+
+.duel-dock-toggle:hover {
+  color: var(--cream);
+  border-color: var(--line-strong);
+}
+
+.duel-dock-body {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 13px 15px 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scrollbar-width: thin;
+}
+
+.duel-dock.collapsed .duel-dock-body {
+  display: none;
+}
+
+.duel-dock-hint {
+  margin: 0;
+  color: #d9c5a7;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.duel-opponent {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: rgba(214, 178, 112, 0.05);
+  padding: 7px 9px;
+}
+
+.duel-focus {
+  border: 1px solid rgba(214, 178, 112, 0.25);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.025);
+  padding: 9px;
+}
+
+.duel-focus-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.duel-focus-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 8px;
+}
+
+.duel-focus-info {
+  min-width: 0;
+}
+
+.duel-focus-name {
+  color: #eed9b6;
+  font-family: "KaiTi", "STKaiti", "SimSun", serif;
+  font-size: 18px;
+}
+
+.duel-focus-sub {
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.duel-focus-targets {
+  display: flex;
+  gap: 6px;
+}
+
+.duel-focus-targets .target-btn {
+  flex: 1;
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
+.duel-selected {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.duel-selected-empty {
+  color: var(--muted);
+  font-size: 12px;
+  padding: 3px 0;
+}
+
+.duel-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid rgba(214, 178, 112, 0.32);
+  border-radius: 999px;
+  background: rgba(214, 178, 112, 0.075);
+  padding: 5px 6px 5px 9px;
+  cursor: pointer;
+}
+
+.duel-chip-text {
+  color: #ead7b8;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.duel-chip-remove {
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--muted);
+  width: 19px;
+  height: 19px;
+  line-height: 1;
+  padding: 0;
+  font-size: 14px;
+}
+
+.duel-chip-remove:hover {
+  color: #ffb8a8;
+  background: rgba(151, 43, 28, 0.35);
+}
+
+.duel-candidate-list {
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
+
+.duel-candidate-list summary {
+  color: var(--muted);
+  font-size: 11px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.duel-candidate-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding-top: 7px;
+}
+
+.duel-candidate-btn {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: rgba(0, 0, 0, 0.12);
+  color: #cdb692;
+  padding: 5px 7px;
+  font-size: 11px;
+}
+
+.duel-candidate-btn:hover {
+  color: var(--cream);
+  border-color: var(--line-strong);
+}
+
+.duel-candidate-btn.focused {
+  border-color: rgba(255, 211, 112, 0.58);
+  color: #ffe3af;
+}
+
+.duel-candidate-btn.selected {
+  background: rgba(214, 178, 112, 0.13);
+  border-color: rgba(214, 178, 112, 0.5);
+  color: var(--gold-2);
+}
+
+.duel-dock-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+
 /* Agreement */
 
 .agreement-body p {
@@ -1543,6 +1789,22 @@ button:disabled {
 
   .duel-count strong {
     font-size: 28px;
+  }
+
+  .duel-dock {
+    right: 8px;
+    bottom: 8px;
+    width: calc(100vw - 16px);
+    max-height: 46vh;
+    border-radius: 14px;
+  }
+
+  .duel-dock.collapsed {
+    width: calc(100vw - 16px);
+  }
+
+  .duel-dock-body {
+    padding: 10px 12px 12px;
   }
 
   .rulebook-frame {

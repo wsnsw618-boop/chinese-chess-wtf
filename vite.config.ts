@@ -15,7 +15,15 @@ export default defineConfig({
   },
   server: {
     watch: {
-      ignored: ['**/*.tmpdir/**', '**/.*.tmpdir/**', '**/*.tmp'],
+      ignored: [
+        '**/*.tmpdir/**',
+        '**/.*.tmpdir/**',
+        '**/*.tmp',
+        '**/dist/**',
+        '**/release/**',
+        '**/sim/results/**',
+        '**/*.zip',
+      ],
     },
   },
   test: {

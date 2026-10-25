@@ -3,6 +3,7 @@ node_modules/
 
 # build output (use GitHub Pages / Releases)
 dist/
+release/
 coverage/
 .vite/
 
@@ -11,6 +12,9 @@ coverage/
 .env.*
 *.log
 *.tmp
+
+# simulation output (reports/ is tracked when useful)
+sim/results/
 
 # editor / OS
 .vscode/

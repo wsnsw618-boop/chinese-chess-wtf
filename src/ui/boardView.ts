@@ -24,12 +24,20 @@ export interface BoardViewOptions {
   showCoordinates: boolean;
 }
 
+export interface DuelHighlight {
+  candidate: boolean;
+  focused?: boolean;
+  order?: number;
+  targetLabel?: string;
+}
+
 export class BoardView {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private game: Game;
   private selected: number | null = null;
   private legal: Move[] = [];
+  private duelHighlights = new Map<number, DuelHighlight>();
   private flipped = false;
   private hover: number | null = null;
   private showCoordinates: boolean;
@@ -62,6 +70,12 @@ export class BoardView {
     this.game = game;
     this.legal = [];
     this.selected = null;
+    this.duelHighlights.clear();
+    this.render();
+  }
+
+  setDuelHighlights(highlights: Map<number, DuelHighlight>): void {
+    this.duelHighlights = new Map(highlights);
     this.render();
   }
 
@@ -144,6 +158,7 @@ export class BoardView {
     this.drawBoard();
     this.drawMoveMarkers();
     this.drawPieces();
+    this.drawDuelHighlights();
     this.drawLegalMarkers();
     this.drawCheck();
     this.drawLabels();
@@ -396,6 +411,72 @@ export class BoardView {
       ctx.textBaseline = 'middle';
       ctx.fillText(pieceName(piece), x, y + 1.5);
       ctx.restore();
+    }
+  }
+
+  private drawDuelHighlights(): void {
+    if (!this.duelHighlights.size) return;
+    const { ctx } = this;
+
+    for (const [sq, highlight] of this.duelHighlights) {
+      const [x, y] = this.squareScreenXY(sq);
+      if (highlight.candidate) {
+        ctx.save();
+        ctx.strokeStyle = highlight.focused
+          ? 'rgba(255, 213, 106, 0.98)'
+          : 'rgba(214, 178, 112, 0.72)';
+        ctx.lineWidth = highlight.focused ? 3.2 : 2;
+        ctx.setLineDash(highlight.focused ? [] : [6, 4]);
+        if (highlight.focused) {
+          ctx.shadowColor = 'rgba(255, 203, 91, 0.85)';
+          ctx.shadowBlur = 16;
+        }
+        ctx.beginPath();
+        ctx.arc(x, y, CELL * 0.465, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      if (highlight.order !== undefined) {
+        const bx = x - CELL * 0.31;
+        const by = y - CELL * 0.34;
+        ctx.save();
+        ctx.fillStyle = '#2b1a0d';
+        ctx.strokeStyle = 'rgba(255, 211, 112, 0.9)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(bx, by, 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#ffe6b0';
+        ctx.font = '700 11px "Microsoft YaHei", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(highlight.order), bx, by + 1);
+        ctx.restore();
+      }
+
+      if (highlight.targetLabel) {
+        const bx = x + CELL * 0.31;
+        const by = y - CELL * 0.36;
+        ctx.save();
+        ctx.fillStyle = '#3a2412';
+        ctx.strokeStyle = 'rgba(255, 211, 112, 0.98)';
+        ctx.lineWidth = 1.8;
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+        ctx.shadowBlur = 5;
+        ctx.beginPath();
+        ctx.arc(bx, by, 14, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowColor = 'transparent';
+        ctx.stroke();
+        ctx.fillStyle = '#ffe6b0';
+        ctx.font = '700 13px "KaiTi", "STKaiti", "Microsoft YaHei", serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(highlight.targetLabel, bx, by + 1);
+        ctx.restore();
+      }
     }
   }
 

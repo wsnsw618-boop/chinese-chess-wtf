@@ -2,6 +2,20 @@
 
 本项目的重要变更记录在此。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [Semantic Versioning](https://semver.org/)。
 
+## [1.1.0] - 2026-10-25
+
+### Added
+
+- **棋盘直接选子 + 可最小化面板**：生死斗升变不再使用遮挡棋盘的全屏弹窗；玩家点击棋盘上的己方棋子，再在可收起面板中选择目标，棋子旁显示选中序号和目标标签。
+- **Simulation lab**：`npm run simulate` / `npm run simulate:pilot`，支持 random / greedy / search agent、确定性 seed、JSONL 对局记录、生死斗自动处理和 Markdown 报告。
+- 首份 200 局 AI pilot 报告：[reports/pilot-001.md](reports/pilot-001.md)。
+- 下一轮实验设计：[reports/next-experiments.md](reports/next-experiments.md)。
+
+### Changed
+
+- 升变面板支持折叠/展开，移动端默认折叠；选子状态同步显示在棋盘标题和状态栏。
+- `scripts/make-pdf.mjs` 与 `scripts/ui-smoke.mjs` 支持 `EDGE_PATH` 和 macOS/Linux 浏览器路径。
+
 ## [1.0.0] - 2026-10-25
 
 ### Added

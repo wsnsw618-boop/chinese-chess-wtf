@@ -16,10 +16,10 @@ import {
 } from '../game/types';
 import { isInCheck } from '../game/moves';
 import rulebookHtml from '../rulebook/rulebook.html?raw';
-import { BoardView } from './boardView';
+import { BoardView, DuelHighlight } from './boardView';
 import { SoundManager } from './sound';
 
-const VERSION = '1.0.0';
+const VERSION = '1.1.0';
 
 interface Settings {
   sound: boolean;
@@ -100,6 +100,17 @@ export class App {
   private modalOpen = false;
   private duelModalOpen = false;
   private duelBusy = false;
+  private duelDock: HTMLElement | null = null;
+  private duelCollapsed = false;
+  private duelSelector: Color | null = null;
+  private duelCandidates: Array<{
+    square: number;
+    piece: number;
+    targets: Array<PieceType.Tiger | PieceType.Dragon>;
+  }> = [];
+  private duelChoices = new Map<number, PieceType.Tiger | PieceType.Dragon>();
+  private duelFocused: number | null = null;
+  private duelOpponentChoices: TransformChoice[] = [];
   private suppressUpdates = false;
   private aiInfo = '';
 
@@ -251,6 +262,7 @@ export class App {
     this.legalForSelected = [];
     this.aiThinking = false;
     this.resultShown = false;
+    this.clearDuelDock();
     this.duelModalOpen = false;
     this.duelBusy = false;
     this.aiInfo = '';
@@ -351,6 +363,10 @@ export class App {
   private updateGameUI(): void {
     if (this.screen !== 'game' || !this.board) return;
 
+    if (this.duelDock && this.game.duel.phase !== 'selection') {
+      this.clearDuelDock();
+    }
+
     if (this.selected !== null) {
       const piece = this.game.position.board[this.selected];
       if (!piece || Math.sign(piece) !== this.game.position.turn) {
@@ -384,6 +400,10 @@ export class App {
     this.updateMoveList();
     this.updateDuelBanner();
     this.updateButtons();
+
+    if (this.duelDock && this.game.duel.phase === 'selection') {
+      this.refreshDuelDock();
+    }
 
     if (this.game.result && !this.resultShown) {
       this.resultShown = true;
@@ -425,7 +445,9 @@ export class App {
       meter.style.width = `${((3 - this.game.duel.countdown + 1) / 3) * 100}%`;
     } else if (this.game.duel.phase === 'selection') {
       turnLabel.textContent = '生死斗 · 选子';
-      statusSub.textContent = '双方选择升变棋子';
+      statusSub.textContent = this.duelDock
+        ? `点击棋盘上的己方棋子，再选虎/龙 · 已选 ${this.duelChoices.size}/2`
+        : '双方选择升变棋子';
       meter.style.width = '100%';
     } else if (this.game.duel.phase === 'restriction') {
       turnLabel.textContent = `${sideName(turn)}行棋`;
@@ -445,7 +467,11 @@ export class App {
         ? '将军！'
         : this.game.duel.phase === 'countdown'
           ? `生死斗将在 ${this.game.duel.countdown} 步后开始`
-          : '红方先行 · 点击棋子查看走法';
+          : this.game.duel.phase === 'selection'
+            ? this.duelDock
+              ? `选子：已选 ${this.duelChoices.size}/2 · 点击棋盘上的己方棋子`
+              : '生死斗选子中'
+            : '红方先行 · 点击棋子查看走法';
     }
   }
 
@@ -567,7 +593,11 @@ export class App {
   // -------------------------------------------------------------------------
 
   private handleSquareClick(sq: number): void {
-    if (this.game.gameOver || this.game.duel.phase === 'selection' || this.aiThinking) return;
+    if (this.game.gameOver || this.aiThinking) return;
+    if (this.game.duel.phase === 'selection') {
+      if (this.duelDock) this.handleDuelSquareClick(sq);
+      return;
+    }
     if (this.mode === 'ai' && this.game.position.turn !== this.humanColor) return;
 
     const turn = this.game.position.turn;
@@ -747,134 +777,307 @@ export class App {
     }
 
     this.duelModalOpen = true;
-    this.openDuelSelectionModal(selector, opponentChoices ?? []);
+    this.openDuelSelectionDock(selector, opponentChoices ?? []);
   }
 
-  private openDuelSelectionModal(selector: Color, opponentChoices: TransformChoice[]): void {
-    const color = selector;
-    const opponentColor = color === RED ? BLACK : RED;
-    const candidates = this.game.getSelectionCandidates(color);
-    const targetLabel = (target: PieceType, forColor: Color) =>
-      target === PieceType.Tiger
-        ? forColor === RED
-          ? '虎'
-          : '坦'
-        : forColor === RED
-          ? '龙'
-          : '仙';
-    const targetName = (target: PieceType) => targetLabel(target, color);
-    const choices = new Map<number, PieceType.Tiger | PieceType.Dragon>();
+  private clearDuelDock(): void {
+    this.duelDock?.remove();
+    this.duelDock = null;
+    this.duelModalOpen = false;
+    this.duelSelector = null;
+    this.duelCandidates = [];
+    this.duelChoices.clear();
+    this.duelFocused = null;
+    this.duelOpponentChoices = [];
+    this.board?.setDuelHighlights(new Map());
+  }
 
+  private closeDuelDock(refresh = true): void {
+    this.clearDuelDock();
+    if (refresh) this.updateGameUI();
+  }
+
+  private openDuelSelectionDock(selector: Color, opponentChoices: TransformChoice[]): void {
+    const candidates = this.game.getSelectionCandidates(selector);
     if (!candidates.length) {
       this.duelModalOpen = false;
-      this.game.selectTransformations(color, []);
+      this.game.selectTransformations(selector, []);
       this.sound.play('duel');
       window.setTimeout(() => void this.handleDuelSelection(), 60);
       return;
     }
 
-    const body = el('div', 'duel-select-body');
-    const intro = el('p', 'duel-intro');
-    intro.textContent = `${sideName(color)}选子：最多选择两个非王棋子升变。选择公开，确认后不可反悔。`;
-    body.appendChild(intro);
+    this.clearDuelDock();
+    this.duelSelector = selector;
+    this.duelCandidates = candidates;
+    this.duelOpponentChoices = opponentChoices;
+    this.duelFocused = candidates[0]?.square ?? null;
+    this.duelModalOpen = true;
+    this.duelCollapsed = window.innerWidth < 720;
+    this.clearSelection();
+    this.buildDuelDock();
+    this.refreshDuelDock();
+  }
 
-    if (opponentChoices.length) {
-      const summary = el('div', 'opponent-choice');
-      summary.innerHTML = `<span class="summary-label">对手已选</span>${opponentChoices
-        .map(
-          (c) =>
-            `<span class="summary-choice">${pieceName(this.game.position.board[c.square])} ${coord(c.square)} → ${targetLabel(c.target, opponentColor)}</span>`,
-        )
-        .join('')}`;
-      body.appendChild(summary);
-    }
+  private buildDuelDock(): void {
+    const color = this.duelSelector;
+    if (!color) return;
+    const dock = el('div', 'duel-dock');
+    dock.id = 'duel-dock';
 
-    const grid = el('div', 'choice-grid');
-    for (const candidate of candidates) {
-      const card = el('div', 'choice-card');
-      card.dataset.square = String(candidate.square);
-      const glyph = el(
-        'span',
-        `choice-glyph ${color === RED ? 'red' : 'black'}`,
-        pieceName(candidate.piece),
+    const head = el('div', 'duel-dock-head');
+    const title = el('div', 'duel-dock-title');
+    title.append(
+      el('span', 'duel-kicker', '生死斗 · 选子'),
+      el('strong', '', `${sideName(color)}选子`),
+    );
+    const toggle = button('收起', 'duel-dock-toggle', () => this.toggleDuelDock());
+    head.append(title, toggle);
+
+    const body = el('div', 'duel-dock-body');
+    const hint = el(
+      'p',
+      'duel-dock-hint',
+      '点击棋盘上的己方棋子，再选择虎/龙。最多选择两个；看不清时可以最小化面板。',
+    );
+    const opponent = el('div', 'duel-opponent hidden');
+    const focus = el('div', 'duel-focus');
+    const selected = el('div', 'duel-selected');
+
+    const details = el('details', 'duel-candidate-list');
+    const summary = el('summary', '', `候选棋子（${this.duelCandidates.length}）`);
+    const grid = el('div', 'duel-candidate-grid');
+    for (const candidate of this.duelCandidates) {
+      const chip = button(
+        `${pieceName(candidate.piece)} · ${coord(candidate.square)}`,
+        'duel-candidate-btn',
+        () => this.focusDuelCandidate(candidate.square),
       );
-      const info = el('div', 'choice-info');
-      const name = el('div', 'choice-name', `${pieceName(candidate.piece)} · ${coord(candidate.square)}`);
-      const current = el('div', 'choice-current', `当前：${pieceName(candidate.piece)}`);
-      info.append(name, current);
-      const targets = el('div', 'choice-targets');
-      for (const target of candidate.targets) {
-        const tb = button(
-          targetName(target),
-          'target-btn',
-          () => {
-            const currentTarget = choices.get(candidate.square);
-            if (currentTarget === target) {
-              choices.delete(candidate.square);
-            } else {
-              if (!choices.has(candidate.square) && choices.size >= 2) {
-                this.toast('最多只能选择两个棋子');
-                return;
-              }
-              choices.set(candidate.square, target as PieceType.Tiger | PieceType.Dragon);
-            }
-            refreshChoices();
-          },
-        );
-        tb.dataset.target = String(target);
-        targets.appendChild(tb);
-      }
-      card.append(glyph, info, targets);
-      grid.appendChild(card);
+      chip.dataset.square = String(candidate.square);
+      grid.appendChild(chip);
     }
-    body.appendChild(grid);
+    details.append(summary, grid);
 
-    const footer = el('div', 'duel-select-footer');
+    const footer = el('div', 'duel-dock-footer');
     const counter = el('span', 'duel-counter', '已选 0 / 2');
-    const confirm = button('确认升变', 'primary-btn', () => {
-      const result: TransformChoice[] = [...choices.entries()].map(([square, target]) => ({
-        square,
-        target,
-      }));
-      try {
-        this.game.selectTransformations(color, result);
-      } catch (error) {
-        this.toast(error instanceof Error ? error.message : '无法应用升变');
+    const confirm = button('不升变，继续', 'primary-btn', () => this.confirmDuelSelection());
+    confirm.id = 'duel-confirm';
+    footer.append(counter, confirm);
+
+    body.append(hint, opponent, focus, selected, details, footer);
+    dock.append(head, body);
+    document.body.appendChild(dock);
+    this.duelDock = dock;
+  }
+
+  private refreshDuelDock(): void {
+    const dock = this.duelDock;
+    const color = this.duelSelector;
+    if (!dock || !color) return;
+
+    dock.classList.toggle('collapsed', this.duelCollapsed);
+    const toggle = dock.querySelector<HTMLButtonElement>('.duel-dock-toggle');
+    if (toggle) toggle.textContent = this.duelCollapsed ? '展开' : '收起';
+
+    const opponent = dock.querySelector<HTMLElement>('.duel-opponent');
+    if (opponent) {
+      opponent.innerHTML = '';
+      if (this.duelOpponentChoices.length) {
+        opponent.classList.remove('hidden');
+        opponent.appendChild(el('span', 'summary-label', '对手已选'));
+        const opponentColor = color === RED ? BLACK : RED;
+        for (const choice of this.duelOpponentChoices) {
+          const piece = this.game.position.board[choice.square];
+          opponent.appendChild(
+            el(
+              'span',
+              'summary-choice',
+              `${pieceName(piece)} ${coord(choice.square)} → ${this.duelTargetName(choice.target, opponentColor)}`,
+            ),
+          );
+        }
+      } else {
+        opponent.classList.add('hidden');
+      }
+    }
+
+    const focus = dock.querySelector<HTMLElement>('.duel-focus');
+    if (focus) {
+      focus.innerHTML = '';
+      const candidate = this.duelCandidates.find((c) => c.square === this.duelFocused);
+      if (!candidate) {
+        focus.appendChild(el('p', 'duel-focus-empty', '先在棋盘上点击一个己方棋子。'));
+      } else {
+        const head = el('div', 'duel-focus-head');
+        const glyph = el(
+          'span',
+          `choice-glyph ${color === RED ? 'red' : 'black'}`,
+          pieceName(candidate.piece),
+        );
+        const info = el('div', 'duel-focus-info');
+        info.append(
+          el('div', 'duel-focus-name', `${pieceName(candidate.piece)} · ${coord(candidate.square)}`),
+          el('div', 'duel-focus-sub', '选择升变目标，或点另一个棋子切换'),
+        );
+        head.append(glyph, info);
+
+        const targets = el('div', 'duel-focus-targets');
+        for (const target of candidate.targets) {
+          const tb = button(
+            this.duelTargetName(target, color),
+            'target-btn',
+            () => this.setDuelTarget(candidate.square, target),
+          );
+          tb.dataset.target = String(target);
+          tb.classList.toggle('active', this.duelChoices.get(candidate.square) === target);
+          targets.appendChild(tb);
+        }
+        focus.append(head, targets);
+      }
+    }
+
+    const selected = dock.querySelector<HTMLElement>('.duel-selected');
+    if (selected) {
+      selected.innerHTML = '';
+      if (!this.duelChoices.size) {
+        selected.appendChild(el('div', 'duel-selected-empty', '尚未选择；也可以直接确认跳过升变。'));
+      } else {
+        const order = new Map<number, number>();
+        [...this.duelChoices.keys()].forEach((square, index) => order.set(square, index + 1));
+        for (const [square, target] of this.duelChoices) {
+          const piece = this.game.position.board[square];
+          const chip = el('div', 'duel-chip');
+          chip.append(
+            el(
+              'span',
+              'duel-chip-text',
+              `${order.get(square)}. ${pieceName(piece)} ${coord(square)} → ${this.duelTargetName(target, color)}`,
+            ),
+            button('×', 'duel-chip-remove', () => {
+              this.duelChoices.delete(square);
+              this.refreshDuelDock();
+            }),
+          );
+          chip.addEventListener('click', (event) => {
+            if ((event.target as HTMLElement).closest('.duel-chip-remove')) return;
+            this.focusDuelCandidate(square);
+          });
+          selected.appendChild(chip);
+        }
+      }
+    }
+
+    const counter = dock.querySelector<HTMLElement>('.duel-counter');
+    if (counter) counter.textContent = `已选 ${this.duelChoices.size} / 2`;
+    const confirm = dock.querySelector<HTMLButtonElement>('#duel-confirm');
+    if (confirm) confirm.textContent = this.duelChoices.size ? '确认升变' : '不升变，继续';
+
+    dock.querySelectorAll<HTMLButtonElement>('.duel-candidate-btn').forEach((chip) => {
+      const square = Number(chip.dataset.square);
+      chip.classList.toggle('selected', this.duelChoices.has(square));
+      chip.classList.toggle('focused', this.duelFocused === square);
+    });
+
+    this.refreshDuelHighlights();
+    this.updateStatus();
+  }
+
+  private refreshDuelHighlights(): void {
+    const color = this.duelSelector;
+    if (!color) {
+      this.board?.setDuelHighlights(new Map());
+      return;
+    }
+    const order = new Map<number, number>();
+    [...this.duelChoices.keys()].forEach((square, index) => order.set(square, index + 1));
+    const highlights = new Map<number, DuelHighlight>();
+    for (const candidate of this.duelCandidates) {
+      const target = this.duelChoices.get(candidate.square);
+      highlights.set(candidate.square, {
+        candidate: true,
+        focused: candidate.square === this.duelFocused,
+        order: order.get(candidate.square),
+        targetLabel: target ? this.duelTargetName(target, color) : undefined,
+      });
+    }
+    this.board?.setDuelHighlights(highlights);
+  }
+
+  private duelTargetName(target: PieceType.Tiger | PieceType.Dragon, color: Color): string {
+    if (target === PieceType.Tiger) return color === RED ? '虎' : '坦';
+    return color === RED ? '龙' : '仙';
+  }
+
+  private setDuelTarget(square: number, target: PieceType.Tiger | PieceType.Dragon): void {
+    const current = this.duelChoices.get(square);
+    if (current === target) {
+      this.duelChoices.delete(square);
+    } else {
+      if (!current && this.duelChoices.size >= 2) {
+        this.toast('最多只能选择两个棋子');
         return;
       }
-      this.closeModal(false);
-      this.sound.play('duel');
-      if (this.game.duel.phase === 'selection') {
-        window.setTimeout(() => void this.handleDuelSelection(), 80);
-      } else {
-        this.updateGameUI();
-        window.setTimeout(() => this.maybeAI(), 300);
-      }
-    });
-    footer.append(counter, confirm);
-    body.appendChild(footer);
+      this.duelChoices.set(square, target);
+    }
+    this.duelFocused = square;
+    this.duelCollapsed = false;
+    this.refreshDuelDock();
+  }
 
-    const refreshChoices = () => {
-      const cards = body.querySelectorAll<HTMLElement>('.choice-card');
-      cards.forEach((card) => {
-        const square = Number(card.dataset.square);
-        const selected = choices.get(square);
-        card.classList.toggle('selected', selected !== undefined);
-        card.querySelectorAll<HTMLButtonElement>('.target-btn').forEach((btn) => {
-          btn.classList.toggle('active', Number(btn.dataset.target) === selected);
-        });
-      });
-      counter.textContent = `已选 ${choices.size} / 2`;
-    };
-    refreshChoices();
+  private focusDuelCandidate(square: number): void {
+    if (!this.duelCandidates.some((candidate) => candidate.square === square)) {
+      this.toast('只能选择自己的非王棋子');
+      return;
+    }
+    if (!this.duelChoices.has(square) && this.duelChoices.size >= 2) {
+      this.toast('最多只能选择两个棋子');
+      return;
+    }
+    this.duelFocused = square;
+    this.duelCollapsed = false;
+    this.refreshDuelDock();
+  }
 
-    this.modal = this.openModal({
-      title: `生死斗 · ${sideName(color)}选子`,
-      body,
-      dismissible: false,
-      wide: true,
-    });
-    this.duelModalOpen = true;
+  private handleDuelSquareClick(square: number): void {
+    const candidate = this.duelCandidates.find((item) => item.square === square);
+    if (!candidate) {
+      this.toast('请在棋盘上选择自己的非王棋子');
+      return;
+    }
+    if (!this.duelChoices.has(square) && this.duelChoices.size >= 2) {
+      this.toast('最多只能选择两个棋子');
+      return;
+    }
+    this.duelFocused = square;
+    this.duelCollapsed = false;
+    this.refreshDuelDock();
+  }
+
+  private toggleDuelDock(): void {
+    this.duelCollapsed = !this.duelCollapsed;
+    this.refreshDuelDock();
+  }
+
+  private confirmDuelSelection(): void {
+    const selector = this.duelSelector;
+    if (!selector) return;
+    const result: TransformChoice[] = [...this.duelChoices.entries()].map(
+      ([square, target]) => ({ square, target }),
+    );
+    try {
+      this.game.selectTransformations(selector, result);
+    } catch (error) {
+      this.toast(error instanceof Error ? error.message : '无法应用升变');
+      return;
+    }
+    this.closeDuelDock(false);
+    this.sound.play('duel');
+    if (this.game.duel.phase === 'selection') {
+      window.setTimeout(() => void this.handleDuelSelection(), 80);
+    } else {
+      this.updateGameUI();
+      window.setTimeout(() => this.maybeAI(), 300);
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -1022,6 +1225,7 @@ export class App {
   }
 
   private closeModal(refresh = true): void {
+    if (this.duelDock) this.clearDuelDock();
     if (this.modal) {
       this.modal.overlay.remove();
       this.modal = null;
@@ -1030,7 +1234,11 @@ export class App {
     this.duelModalOpen = false;
     if (refresh && this.screen === 'game') {
       this.updateGameUI();
-      window.setTimeout(() => this.maybeAI(), 300);
+      if (this.game.duel.phase === 'selection') {
+        window.setTimeout(() => void this.handleDuelSelection(), 120);
+      } else {
+        window.setTimeout(() => this.maybeAI(), 300);
+      }
     }
   }
 

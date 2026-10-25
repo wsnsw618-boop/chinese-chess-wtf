@@ -9,6 +9,8 @@
 | [vite-plugin-singlefile](https://github.com/richardtallent/vite-plugin-singlefile) | 单文件 HTML 构建 | MIT |
 | [TypeScript](https://www.typescriptlang.org/) | 类型检查与编译 | Apache-2.0 |
 | [playwright-core](https://playwright.dev/) | 浏览器 UI 冒烟测试 | Apache-2.0 |
+| [tsx](https://tsx.is/) | 运行 simulation CLI 的 TypeScript 入口 | MIT |
+| [@types/node](https://github.com/DefinitelyTyped/DefinitelyTyped) | simulation CLI 的 Node 类型 | MIT |
 
 完整依赖树和版本锁定见 `package-lock.json`。各依赖的完整许可证文本位于对应的 `node_modules/<package>/LICENSE*` 文件中。
 
