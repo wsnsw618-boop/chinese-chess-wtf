@@ -2,6 +2,19 @@
 
 本项目的重要变更记录在此。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [Semantic Versioning](https://semver.org/)。
 
+## [1.2.0] - 2026-10-25
+
+### Changed
+
+- **生死斗重复触发规则**：第一次生死斗之后，只有双方虎/坦/龙/仙全部阵亡才能再次触发；双方≤5 子、三次重复、无进展都不再重复触发。第一次生死斗的触发方式不变。
+- 规则说明书升级到 v1.1，并同步 PDF。
+
+### Added
+
+- 新规则 200 局 pilot：[reports/pilot-002.md](reports/pilot-002.md)。
+- 旧规则 vs 新规则对照：[reports/comparison-001-002.md](reports/comparison-001-002.md)。
+- 实验 A 结果与后续计划已更新到 [reports/next-experiments.md](reports/next-experiments.md)。
+
 ## [1.1.0] - 2026-10-25
 
 ### Added

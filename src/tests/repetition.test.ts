@@ -39,6 +39,36 @@ describe('repetition and perpetual check', () => {
     expect(game.duel.countdown).toBe(3);
   });
 
+  it('does not start a repeat duel from repetition while superpieces remain', () => {
+    const pos = customPosition([
+      ['e1', RED, PieceType.King],
+      ['e10', BLACK, PieceType.King],
+      ['e5', RED, PieceType.Pawn],
+      ['e6', BLACK, PieceType.Pawn],
+      ['a1', RED, PieceType.Tiger],
+      ['b10', BLACK, PieceType.Tiger],
+      ['c1', RED, PieceType.Advisor],
+      ['f1', RED, PieceType.Advisor],
+      ['c10', BLACK, PieceType.Advisor],
+      ['f10', BLACK, PieceType.Advisor],
+      ['a3', RED, PieceType.Pawn],
+      ['a7', BLACK, PieceType.Pawn],
+    ]);
+    const game = new Game();
+    game.loadPosition(pos, { count: 1 });
+
+    for (let cycle = 0; cycle < 2; cycle++) {
+      expect(game.makeMove(parseCoord('a1'), parseCoord('a2'))).toBe(true);
+      expect(game.makeMove(parseCoord('b10'), parseCoord('b9'))).toBe(true);
+      expect(game.makeMove(parseCoord('a2'), parseCoord('a1'))).toBe(true);
+      expect(game.makeMove(parseCoord('b9'), parseCoord('b10'))).toBe(true);
+    }
+
+    expect(game.duel.phase).toBe('none');
+    expect(game.duel.count).toBe(1);
+    expect(game.result).toBeNull();
+  });
+
   it('declares perpetual check as a loss for the checking side', () => {
     const pos = customPosition([
       ['f1', RED, PieceType.King],

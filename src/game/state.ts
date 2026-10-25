@@ -303,8 +303,13 @@ export class Game {
   private checkTriggers(): void {
     if (this.result || this.duel.phase !== 'none') return;
 
-    if (this.duel.count > 0 && allSuperPiecesCaptured(this.position)) {
-      this.startSelection('superpieces');
+    // After the first duel, the ONLY way to trigger another one is the
+    // complete extinction of all 虎/坦/龙/仙. The old ≤5-piece, repetition
+    // and no-progress loops must not re-open the selection phase.
+    if (this.duel.count > 0) {
+      if (allSuperPiecesCaptured(this.position)) {
+        this.startSelection('superpieces');
+      }
       return;
     }
 
@@ -588,6 +593,9 @@ export class Game {
     }
 
     if (this.duel.phase === 'none') {
+      // A repetition after the first duel does not re-trigger. If all
+      // superpieces are gone, checkTriggers() handles the immediate duel.
+      if (this.duel.count > 0) return 'none';
       this.startCountdown('repetition');
       return 'started';
     }

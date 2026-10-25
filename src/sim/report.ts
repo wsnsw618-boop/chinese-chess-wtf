@@ -65,10 +65,14 @@ export function renderReport(summary: Summary, generatedAt = new Date()): string
     findings.push(
       `生死斗出现在 **${duel.games}/${summary.total}** 局（${pct(duel.rate)}），共触发 **${duel.triggers}** 次；先选方胜率 **${pct(duel.firstSelectorRate)}**（95% CI ${interval(duel.firstSelectorInterval.low, duel.firstSelectorInterval.high)}）。`,
     );
+  const multiRate = duel.games ? duel.multiDuelGames / duel.games : 0;
     if (duel.multiDuelGames > 0) {
+      const severe = multiRate > 0.2;
       findings.push(
-        `**重复生死斗信号**：${duel.multiDuelGames} 局触发不止一次，单局最多 **${duel.maxTriggersPerGame}** 次；平均每个有生死斗的局触发 **${num(duel.triggersPerDuelGame, 2)}** 次。触发原因分布：${top(duel.triggerReasons)}。`,
+        `**重复生死斗信号**：${duel.multiDuelGames} 局触发不止一次（占生死斗局 ${pct(multiRate)}），单局最多 **${duel.maxTriggersPerGame}** 次；平均每个有生死斗的局触发 **${num(duel.triggersPerDuelGame, 2)}** 次。触发原因分布：${top(duel.triggerReasons)}。${severe ? ' 这是明显的重复触发风险。' : ' 重复触发已降到较低水平。'}`,
       );
+    } else {
+      findings.push('本批没有重复触发生死斗。');
     }
   } else {
     findings.push('本批对局没有触发生死斗；需要更长的对局或更接近残局的 agent。');
@@ -112,11 +116,20 @@ export function renderReport(summary: Summary, generatedAt = new Date()): string
     next.push('颜色平衡：同 agent 镜像开局，扩到 2000 局；若仍偏离 45–55%，再查先手/阵营棋子价值。');
   }
   if (duel.multiDuelGames > 0) {
-    next.push(
-      `重复生死斗：本批有 ${duel.multiDuelGames} 局多次触发，最多 ${duel.maxTriggersPerGame} 次。做一个独立 A/B：保留当前规则 vs “同一触发条件冷却/每次材料变化只触发一次”，比较手数、胜负原因和先选方胜率；不要直接改冻结规则。`,
-    );
+    const multiRate = duel.games ? duel.multiDuelGames / duel.games : 0;
+    if (multiRate > 0.2) {
+      next.push(
+        `重复生死斗：本批有 ${duel.multiDuelGames} 局多次触发（占 ${pct(multiRate)}），最多 ${duel.maxTriggersPerGame} 次。做一个独立 A/B：保留当前规则 vs “同一触发条件冷却/每次材料变化只触发一次”，比较手数、胜负原因和先选方胜率；不要直接改冻结规则。`,
+      );
+    } else {
+      next.push(
+        `重复生死斗已明显减少（${duel.multiDuelGames}/${duel.games} 局多次，最多 ${duel.maxTriggersPerGame} 次）。把新规则扩到 1000–2000 局，重点确认它是否稳定接近“一局一次”，以及长局是否增加。`,
+      );
+    }
   }
-  if (duel.firstSelectorTotal >= 5 && (duel.firstSelectorRate > 0.6 || duel.firstSelectorRate < 0.4)) {
+  const firstSelectorStrong =
+    duel.firstSelectorInterval.high < 0.45 || duel.firstSelectorInterval.low > 0.55;
+  if (duel.firstSelectorTotal >= 5 && firstSelectorStrong) {
     next.push('生死斗先选优势：固定选子质量、随机化升变目标，专门跑 1000 局对比先选/后选胜率。');
   } else if (duel.firstSelectorTotal >= 5) {
     next.push('生死斗先选优势暂不明显；用 1000+ 局和随机化选子复核，避免把选子 AI 的偏好当成规则优势。');

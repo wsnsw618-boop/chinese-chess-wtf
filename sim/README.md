@@ -5,8 +5,10 @@
 ## 快速运行
 
 ```powershell
-npm run simulate -- --games 200 --red search:2:60 --black search:2:60 --seed 20261025 --out sim/results/pilot-001 --report reports/pilot-001.md
+npm run simulate -- --games 200 --red search:2:60 --black search:2:60 --seed 20261025 --out sim/results/pilot-002 --report reports/pilot-002.md
 ```
+
+旧规则基线见 `reports/pilot-001.md`；新规则对照见 `reports/comparison-001-002.md`。
 
 或：
 

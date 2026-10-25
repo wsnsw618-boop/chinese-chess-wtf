@@ -200,13 +200,35 @@ describe('duel state machine', () => {
     expect(game.legalMoves().some((m) => m.kind === 'swapGuard')).toBe(true);
   });
 
-  it('forces a new duel when all superpieces are gone after a previous duel', () => {
+  it('does not repeat a duel while any superpiece remains', () => {
+    const pos = customPosition([
+      ['e1', RED, PieceType.King],
+      ['e5', RED, PieceType.Pawn],
+      ['a1', RED, PieceType.Tiger],
+      ['e10', BLACK, PieceType.King],
+      ['a10', BLACK, PieceType.Tiger],
+      ['a7', BLACK, PieceType.Pawn],
+    ]);
+    const game = new Game();
+    game.loadPosition(pos, { count: 1 });
+    expect(game.makeMove(parseCoord('e5'), parseCoord('e6'))).toBe(true);
+    expect(game.duel.phase).toBe('none');
+    expect(game.duel.count).toBe(1);
+  });
+
+  it('forces a new duel when all superpieces are gone after a previous duel, even with more than five pieces', () => {
     const pos = customPosition([
       ['e1', RED, PieceType.King],
       ['e5', RED, PieceType.Pawn],
       ['a4', RED, PieceType.Pawn],
+      ['c4', RED, PieceType.Pawn],
+      ['g4', RED, PieceType.Pawn],
+      ['i4', RED, PieceType.Pawn],
       ['e10', BLACK, PieceType.King],
       ['a7', BLACK, PieceType.Pawn],
+      ['c7', BLACK, PieceType.Pawn],
+      ['g7', BLACK, PieceType.Pawn],
+      ['i7', BLACK, PieceType.Pawn],
     ]);
     const game = new Game();
     game.loadPosition(pos, { count: 1 });

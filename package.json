@@ -1,7 +1,7 @@
 {
   "name": "chinese-chess-wtf",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.2.0",
   "type": "module",
   "description": "中国象棋WTF版 - 开发者：剧毒术士（离谱暗封剑）",
   "license": "MIT",
@@ -27,7 +27,7 @@
     "serve": "node scripts/serve.mjs",
     "smoke": "node scripts/ui-smoke.mjs",
     "simulate": "tsx src/sim/cli.ts",
-    "simulate:pilot": "tsx src/sim/cli.ts --games 200 --red search:2:60 --black search:2:60 --seed 20261025 --max-plies 600 --out sim/results/pilot-001 --report reports/pilot-001.md",
+    "simulate:pilot": "tsx src/sim/cli.ts --games 200 --red search:2:60 --black search:2:60 --seed 20261025 --max-plies 600 --out sim/results/pilot-002 --report reports/pilot-002.md",
     "pdf": "node scripts/make-pdf.mjs",
     "package": "npm run build && npm run pdf && node scripts/package.mjs"
   },
