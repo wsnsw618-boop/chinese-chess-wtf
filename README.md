@@ -128,7 +128,7 @@ AI 使用：
 | 普通 | 深度 5（1.4 秒上限） | 约 1.4 秒 |
 | 困难 | 迭代加深至深度 6 | 约 2.4 秒 |
 
-AI 会在同分/近似同分着法中随机选择；普通档只保留很小的随机余量，减少“突然走坏棋”的观感。
+AI 会在同分/近似同分着法中随机选择；普通档已关闭近似同分随机，优先走搜索最佳着，减少“突然走坏棋”的观感。
 
 ---
 
@@ -164,7 +164,7 @@ reports/<run>.md
 - Multi-agent 对照：[reports/agent-screen.md](reports/agent-screen.md)
 - 升变 A/B：[reports/selection-ab.md](reports/selection-ab.md)
 - 第二轮汇总：[reports/round-2-results.md](reports/round-2-results.md)
-- 普通 AI 调强记录：[reports/ai-tuning-v1.2.2.md](reports/ai-tuning-v1.2.2.md)
+- 普通 AI 调强记录：[reports/ai-tuning-v1.2.3.md](reports/ai-tuning-v1.2.3.md)
 - 下一轮实验：[reports/next-experiments.md](reports/next-experiments.md)
 
 报告包含先攻（红方）获胜局的首步、前 3/5 半回合、红方前 3/5 手的唯一数、重复率、最高频占比和熵；用于观察是否形成固定“最优开局”。

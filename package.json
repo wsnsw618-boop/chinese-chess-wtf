@@ -1,7 +1,7 @@
 {
   "name": "chinese-chess-wtf",
   "private": true,
-  "version": "1.2.2",
+  "version": "1.2.3",
   "type": "module",
   "description": "中国象棋WTF版 - 开发者：剧毒术士（离谱暗封剑）",
   "license": "MIT",

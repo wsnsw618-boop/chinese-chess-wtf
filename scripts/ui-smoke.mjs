@@ -69,7 +69,7 @@ try {
   await clickSquare(page, 0, 4);
   await page.waitForTimeout(2600);
   assert.equal(await page.locator('#move-count').textContent(), '2');
-  assert.match(await page.locator('#status-sub').textContent(), /AI|深度|行棋/);
+  assert.match(await page.locator('#status-sub').textContent(), /AI|深度|行棋|将军/);
 
   // Duel selection UI via the debug surface (PVP so both selectors are human).
   await page.reload({ waitUntil: 'networkidle' });

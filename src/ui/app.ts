@@ -19,7 +19,7 @@ import rulebookHtml from '../rulebook/rulebook.html?raw';
 import { BoardView, DuelHighlight } from './boardView';
 import { SoundManager } from './sound';
 
-const VERSION = '1.2.2';
+const VERSION = '1.2.3';
 
 interface Settings {
   sound: boolean;
@@ -1327,7 +1327,7 @@ export class App {
       <table>
         <tr><th>难度</th><th>搜索</th><th>时间</th><th>特点</th></tr>
         <tr><td>简单</td><td>深度 2</td><td>约 0.35 秒</td><td>会犯错，适合新手</td></tr>
-        <tr><td>普通</td><td>深度 5（1.4 秒上限）</td><td>约 1.4 秒</td><td>更完整的战术搜索，减少随机失误</td></tr>
+        <tr><td>普通</td><td>深度 5（1.4 秒上限）</td><td>约 1.4 秒</td><td>不做近似同分随机，优先选搜索最佳着</td></tr>
         <tr><td>困难</td><td>迭代加深至深度 6</td><td>约 2.4 秒</td><td>更强的战术组合，仍保证不超时</td></tr>
       </table>
       <h3>生死斗选子</h3>

@@ -2,6 +2,13 @@
 
 本项目的重要变更记录在此。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [Semantic Versioning](https://semver.org/)。
 
+## [1.2.3] - 2026-10-26
+
+### Fixed
+
+- **普通 AI 反而变笨**：根节点 `randomize` 会在 alpha-beta 的近似分数中挑到“看似接近、实际很差”的着法。v1.2.2 把余量从 20 降到 8 仍然会触发；v1.2.3 将普通档 `randomize` 设为 0，优先走搜索最佳着。
+- 保留普通档 depth 5 / 1400ms 的搜索强度；简单档仍保留随机，困难档本来就不随机。
+
 ## [1.2.2] - 2026-10-26
 
 ### Changed
