@@ -10,6 +10,24 @@ export interface ChoiceStat {
   selectorWins: number;
 }
 
+export interface RepeatSequenceStat {
+  sample: number;
+  unique: number;
+  repeatRate: number;
+  topShare: number;
+  entropy: number;
+  top: Array<[string, number]>;
+}
+
+export interface OpeningRepeatSummary {
+  wins: number;
+  firstMove: RepeatSequenceStat;
+  first3Plies: RepeatSequenceStat;
+  first5Plies: RepeatSequenceStat;
+  redFirst3Moves: RepeatSequenceStat;
+  redFirst5Moves: RepeatSequenceStat;
+}
+
 export interface Summary {
   config: {
     games: number;
@@ -17,6 +35,9 @@ export interface Summary {
     maxPlies: number;
     red: string;
     black: string;
+    selection: string;
+    selectionRed: string;
+    selectionBlack: string;
   };
   total: number;
   finished: number;
@@ -82,6 +103,7 @@ export interface Summary {
     avgUniquePositions: number;
     avgPositionsTotal: number;
   };
+  openingRepeat: OpeningRepeatSummary;
   dynamics: {
     evalVolatility: number;
     maxEvalSwing: number;
@@ -147,6 +169,25 @@ function bumpChoice(
 function averageNullable(values: Array<number | null>): number | null {
   const present = values.filter((value): value is number => value !== null);
   return present.length ? mean(present) : null;
+}
+
+function repeatStat(sequences: string[]): RepeatSequenceStat {
+  const counts: Record<string, number> = {};
+  for (const sequence of sequences) {
+    if (!sequence) continue;
+    bump(counts, sequence);
+  }
+  const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  const sample = entries.reduce((sum, [, count]) => sum + count, 0);
+  const unique = entries.length;
+  return {
+    sample,
+    unique,
+    repeatRate: sample ? 1 - unique / sample : 0,
+    topShare: sample ? (entries[0]?.[1] ?? 0) / sample : 0,
+    entropy: entropy(counts),
+    top: entries.slice(0, 5),
+  };
 }
 
 export function summarize(records: GameRecord[], config: RunConfig): Summary {
@@ -241,6 +282,41 @@ export function summarize(records: GameRecord[], config: RunConfig): Summary {
     .map((record) => record.stats.firstDuelPly)
     .filter((ply): ply is number => ply !== null);
 
+  const redWinningRecords = finishedRecords.filter(
+    (record) => record.result?.winner === 'red',
+  );
+  const redWinningMoveLists = redWinningRecords.map((record) =>
+    record.moves.filter((_, index) => index % 2 === 0),
+  );
+  const openingRepeat: OpeningRepeatSummary = {
+    wins: redWinningRecords.length,
+    firstMove: repeatStat(
+      redWinningRecords
+        .map((record) => record.moves[0]?.notation ?? '')
+        .filter((value): value is string => Boolean(value)),
+    ),
+    first3Plies: repeatStat(
+      redWinningRecords
+        .map((record) => record.moves.slice(0, 3).map((move) => move.notation).join(' '))
+        .filter((value): value is string => Boolean(value)),
+    ),
+    first5Plies: repeatStat(
+      redWinningRecords
+        .map((record) => record.moves.slice(0, 5).map((move) => move.notation).join(' '))
+        .filter((value): value is string => Boolean(value)),
+    ),
+    redFirst3Moves: repeatStat(
+      redWinningMoveLists
+        .map((moves) => moves.slice(0, 3).map((move) => move.notation).join(' '))
+        .filter((value): value is string => Boolean(value)),
+    ),
+    redFirst5Moves: repeatStat(
+      redWinningMoveLists
+        .map((moves) => moves.slice(0, 5).map((move) => move.notation).join(' '))
+        .filter((value): value is string => Boolean(value)),
+    ),
+  };
+
   const result: Summary = {
     config: {
       games: config.games,
@@ -248,6 +324,9 @@ export function summarize(records: GameRecord[], config: RunConfig): Summary {
       maxPlies: config.maxPlies,
       red: config.red.label,
       black: config.black.label,
+      selection: config.selection ?? 'natural',
+      selectionRed: config.selectionRed ?? config.selection ?? 'natural',
+      selectionBlack: config.selectionBlack ?? config.selection ?? 'natural',
     },
     total,
     finished: finishedRecords.length,
@@ -315,6 +394,7 @@ export function summarize(records: GameRecord[], config: RunConfig): Summary {
       avgUniquePositions: mean(records.map((record) => record.stats.uniquePositions)),
       avgPositionsTotal: mean(records.map((record) => record.stats.positionsTotal)),
     },
+    openingRepeat,
     dynamics: {
       evalVolatility: mean(records.map((record) => record.stats.evalVolatility)),
       maxEvalSwing: mean(records.map((record) => record.stats.maxEvalSwing)),

@@ -2,6 +2,8 @@ export type Side = 'red' | 'black';
 
 export type AgentKind = 'random' | 'greedy' | 'search';
 
+export type SelectionMode = 'natural' | 'random' | 'tiger' | 'dragon';
+
 export interface AgentSpec {
   kind: AgentKind;
   depth: number;
@@ -16,6 +18,9 @@ export interface RunConfig {
   maxPlies: number;
   red: AgentSpec;
   black: AgentSpec;
+  selection: SelectionMode;
+  selectionRed: SelectionMode;
+  selectionBlack: SelectionMode;
   outDir: string;
   reportPath: string;
 }

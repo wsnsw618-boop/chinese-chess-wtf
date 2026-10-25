@@ -286,6 +286,20 @@ export class Game {
       this.setResult(mover, 'stalemate', `${sideName(opponent)}无子可走，困毙判负`);
       return true;
     }
+    // During the restriction round, normal legal moves may all be removed by
+    // "new piece may not deliver mate". In that case the side to move has no
+    // legal move under the active rules and loses by stalemate-like logic.
+    if (this.duel.phase === 'restriction') {
+      const restricted = generateAllLegalMoves(this.position, this.legalOptions);
+      if (!restricted.length) {
+        this.setResult(
+          opponent,
+          'duelMate',
+          `${sideName(opponent)}在限制回合无合法着法`,
+        );
+        return true;
+      }
+    }
     return false;
   }
 
@@ -483,6 +497,9 @@ export class Game {
       this.setResult(opposite(toMove), 'duelMate', `${sideName(toMove)}在升变后无子可走`);
       return;
     }
+    // Restriction can remove all otherwise-legal moves; make that a loss now
+    // instead of leaving the game with no legal move and no result.
+    this.checkTerminal(opposite(toMove));
   }
 
   resign(color: Color): void {

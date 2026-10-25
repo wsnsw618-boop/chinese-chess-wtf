@@ -158,9 +158,15 @@ reports/<run>.md
 当前报告：
 
 - 旧规则基线：[reports/pilot-001.md](reports/pilot-001.md)
-- 新重复规则 pilot：[reports/pilot-002.md](reports/pilot-002.md)
+- 新规则 200 局：[reports/pilot-002.md](reports/pilot-002.md)
+- 新规则 1000 局：[reports/pilot-003.md](reports/pilot-003.md)
 - 规则 A/B 对照：[reports/comparison-001-002.md](reports/comparison-001-002.md)
+- Multi-agent 对照：[reports/agent-screen.md](reports/agent-screen.md)
+- 升变 A/B：[reports/selection-ab.md](reports/selection-ab.md)
+- 第二轮汇总：[reports/round-2-results.md](reports/round-2-results.md)
 - 下一轮实验：[reports/next-experiments.md](reports/next-experiments.md)
+
+报告包含先攻（红方）获胜局的首步、前 3/5 半回合、红方前 3/5 手的唯一数、重复率、最高频占比和熵；用于观察是否形成固定“最优开局”。
 
 `sim/results/` 不提交；报告可以提交到 `reports/`。
 

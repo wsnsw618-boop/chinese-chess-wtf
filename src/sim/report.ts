@@ -1,4 +1,4 @@
-import type { ChoiceStat, Summary } from './metrics';
+import type { ChoiceStat, RepeatSequenceStat, Summary } from './metrics';
 
 function pct(value: number, digits = 1): string {
   return `${(value * 100).toFixed(digits)}%`;
@@ -35,6 +35,19 @@ function choiceRows(map: Record<string, ChoiceStat>): string {
     .join('');
 }
 
+function repeatRow(label: string, stat: RepeatSequenceStat): string {
+  const top = stat.top[0]?.[0] ?? '-';
+  return `| ${label} | ${stat.sample} | ${stat.unique} | ${pct(stat.repeatRate)} | ${pct(stat.topShare)} | ${num(stat.entropy, 2)} | \`${top}\` |\n`;
+}
+
+function repeatTop(stat: RepeatSequenceStat): string {
+  if (!stat.top.length) return '无';
+  return stat.top
+    .slice(0, 3)
+    .map(([sequence, count]) => `\`${sequence}\` ×${count}`)
+    .join(' · ');
+}
+
 export function renderReport(summary: Summary, generatedAt = new Date()): string {
   const red = summary.result;
   const reasons = sortedEntries(summary.reasons);
@@ -54,7 +67,7 @@ export function renderReport(summary: Summary, generatedAt = new Date()): string
   }
   if (red.redRate > 0.55 || red.redRate < 0.45) {
     findings.push(
-      `红方胜率 **${pct(red.redRate)}**，95% CI ${interval(red.redInterval.low, red.redInterval.high)}${redExcludesHalf ? '，区间不包含 50%' : ''}；在 200 局 pilot 中这是一个需要复测的颜色信号。`,
+      `红方胜率 **${pct(red.redRate)}**，95% CI ${interval(red.redInterval.low, red.redInterval.high)}${redExcludesHalf ? '，区间不包含 50%' : ''}；在 ${summary.total} 局中这是一个需要复测的颜色信号。`,
     );
   } else {
     findings.push(
@@ -86,6 +99,16 @@ export function renderReport(summary: Summary, generatedAt = new Date()): string
   findings.push(
     `开局：首着熵 **${num(diversity.firstMoveEntropy, 2)}** bit；前 4 手唯一率 **${pct(diversity.uniqueOpeningRate4)}**；前 8 手唯一率 **${pct(diversity.uniqueOpeningRate8)}**。`,
   );
+  const openingRepeat = summary.openingRepeat;
+  if (openingRepeat.wins) {
+    const risk =
+      openingRepeat.firstMove.topShare >= 0.35 ||
+      openingRepeat.first3Plies.topShare >= 0.25 ||
+      openingRepeat.first5Plies.topShare >= 0.2;
+    findings.push(
+      `先攻（红方）获胜局的定式观察：首步最高频占比 **${pct(openingRepeat.firstMove.topShare)}**，前 3 半回合 **${pct(openingRepeat.first3Plies.topShare)}**，前 5 半回合 **${pct(openingRepeat.first5Plies.topShare)}**；${risk ? '**已出现定式风险**' : '暂未形成明显定式'}。`,
+    );
+  }
   if (trans.total) {
     const targetEntries = Object.entries(trans.byTarget).sort((a, b) => b[1].selected - a[1].selected);
     const redTiger = trans.byTarget['虎']?.selected ?? 0;
@@ -140,6 +163,13 @@ export function renderReport(summary: Summary, generatedAt = new Date()): string
   if (diversity.uniqueOpeningRate4 < 0.5) {
     next.push('开局重复偏高：加入 top-k 随机/开局扰动，先测“多样性上限”，再判断规则是否只有一条主线路。');
   }
+  if (
+    openingRepeat.firstMove.topShare >= 0.35 ||
+    openingRepeat.first3Plies.topShare >= 0.25 ||
+    openingRepeat.first5Plies.topShare >= 0.2
+  ) {
+    next.push('先攻定式风险：用强制首步/强制前 3 手 A/B，区分“AI 评估偏好”与“规则上真正的最优开局”；同时观察后手应对。');
+  }
   if (dynamics.snowballGames && dynamics.snowballRate > 0.75) {
     next.push('雪崩信号：比较 20/40 手领先转化率，检查单王判负和超级子是否让领先过早锁定。');
   }
@@ -161,9 +191,10 @@ export function renderReport(summary: Summary, generatedAt = new Date()): string
 - 样本：**${summary.total}** 局
 - 红方 agent：\`${summary.config.red}\`
 - 黑方 agent：\`${summary.config.black}\`
+- 升变选子策略：red=\`${summary.config.selectionRed}\` black=\`${summary.config.selectionBlack}\`
 - 随机种子：\`${summary.config.seed}\`
 - 最大手数：${summary.config.maxPlies}
-- 所有比例使用 Wilson 95% 置信区间；200 局只能发现明显信号，不能证明细微差异。
+- 所有比例使用 Wilson 95% 置信区间；${summary.total} 局只能发现明显信号，不能证明细微差异。
 
 ---
 
@@ -236,6 +267,24 @@ ${choiceRows(trans.byPiece)}
 
 首着分布：${top(diversity.firstMoves, 8)}
 
+## 先攻获胜局的开局重复率
+
+只统计 **红方获胜** 的对局。
+“重复率” = “1 - 唯一起始序列数 / 样本数”，表示有多少局与之前的某局共享同一序列；“最高频占比” 表示最常用序列占样本的比例。
+
+| 口径 | 样本 | 唯一 | 重复率 | 最高频占比 | 熵 | 最高频序列 |
+|---|---:|---:|---:|---:|---:|---|
+${repeatRow('首步', openingRepeat.firstMove)}${repeatRow('前 3 半回合', openingRepeat.first3Plies)}${repeatRow('前 5 半回合', openingRepeat.first5Plies)}${repeatRow('红方前 3 手', openingRepeat.redFirst3Moves)}${repeatRow('红方前 5 手', openingRepeat.redFirst5Moves)}
+最高频组合：
+
+- 首步：${repeatTop(openingRepeat.firstMove)}
+- 前 3 半回合：${repeatTop(openingRepeat.first3Plies)}
+- 前 5 半回合：${repeatTop(openingRepeat.first5Plies)}
+- 红方前 3 手：${repeatTop(openingRepeat.redFirst3Moves)}
+- 红方前 5 手：${repeatTop(openingRepeat.redFirst5Moves)}
+
+> 首步/前 3 手样本多，重复率有统计意义；前 5 半回合的精确序列通常很分散，单看“唯一数”可能低估套路集中度，因此同时看最高频占比和熵。
+
 ## 动态与雪崩
 
 | 指标 | 数值 |
@@ -262,7 +311,7 @@ ${next.map((item, index) => `${index + 1}. ${item}`).join('\n')}
 - 搜索 agent 使用固定最大深度 + 时间上限；批量实验优先固定深度，避免纯时间限制带来的不可复现。
 - 生死斗倒计时、两阶段选子、限制回合由 runner 自动处理。
 - 所有对局记录在 \`games.jsonl\`，包含完整着法、评估、升变选择、触发原因和错误信息。
-- 200 局 pilot 用于验证数据管线和发现明显异常；正式结论应基于 2000+ 局、多种 agent 和人类试玩。
+- ${summary.total} 局 pilot 用于验证数据管线和发现明显异常；正式结论应基于 2000+ 局、多种 agent 和人类试玩。
 
 ## 错误记录
 

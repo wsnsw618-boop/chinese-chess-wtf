@@ -10,18 +10,46 @@ import {
   typeName,
   TransformChoice,
 } from '../game/types';
-import { createAgent, targetLabel, type AgentContext } from './agents';
-import { mulberry32 } from './rng';
+import { createAgent, targetLabel } from './agents';
+import { mulberry32, shuffle, type Rng } from './rng';
 import type {
   DuelTriggerLog,
   GameRecord,
   MoveLog,
   SelectionLog,
+  SelectionMode,
   Side,
 } from './types';
 
 function sideOf(color: Color): Side {
   return color === RED ? 'red' : 'black';
+}
+
+function forcedSelection(
+  game: Game,
+  selector: Color,
+  mode: SelectionMode,
+  rng: Rng,
+): TransformChoice[] {
+  if (mode === 'natural') return [];
+  const candidates = game.getSelectionCandidates(selector);
+  if (!candidates.length) return [];
+  if (mode === 'random') {
+    const count = Math.min(2, Math.floor(rng() * (Math.min(2, candidates.length) + 1)));
+    return shuffle(rng, candidates)
+      .slice(0, count)
+      .map(({ square, targets }) => ({
+        square,
+        target: targets[Math.floor(rng() * targets.length)],
+      }));
+  }
+  const target = mode === 'tiger' ? PieceType.Tiger : PieceType.Dragon;
+  return shuffle(
+    rng,
+    candidates.filter((candidate) => candidate.targets.includes(target)),
+  )
+    .slice(0, 2)
+    .map(({ square }) => ({ square, target }));
 }
 
 function describeMove(mover: Color, move: Move, ply: number, legalMoves: number, phase: string): MoveLog {
@@ -51,6 +79,8 @@ export function playGame(
   blackSpec: ReturnType<typeof createAgent>['spec'],
   seed: number,
   gameIndex: number,
+  selectionRed: SelectionMode,
+  selectionBlack: SelectionMode,
   maxPlies: number,
 ): GameRecord {
   const game = new Game();
@@ -95,29 +125,34 @@ export function playGame(
       }
       const first = selector === duel.firstSelector;
       const agent = selector === RED ? red : black;
+      const selectionMode = selector === RED ? selectionRed : selectionBlack;
       const opponentChoices = first ? undefined : (duel.firstChoices ?? []);
       const opponentColor = first ? undefined : (duel.firstSelector ?? undefined);
       let proposed: TransformChoice[] = [];
       try {
-        proposed = agent.chooseTransformations(
-          game.position.clone(),
-          selector,
-          opponentChoices,
-          opponentColor,
-          { rng, ply },
-        );
+        proposed =
+          selectionMode === 'natural'
+            ? agent.chooseTransformations(
+                game.position.clone(),
+                selector,
+                opponentChoices,
+                opponentColor,
+                { rng, ply },
+              )
+            : forcedSelection(game, selector, selectionMode, rng);
+        const beforeChoices = proposed.map((choice) => ({
+          square: choice.square,
+          coordinate: coord(choice.square),
+          piece: pieceName(game.position.board[choice.square]),
+          target: targetLabel(choice.target, selector),
+        }));
         game.selectTransformations(selector, proposed);
         selections.push({
           duelIndex: duel.count,
           selector: sideOf(selector),
           first,
           accepted: true,
-          choices: proposed.map((choice) => ({
-            square: choice.square,
-            coordinate: coord(choice.square),
-            piece: pieceName(game.position.board[choice.square]),
-            target: targetLabel(choice.target, selector),
-          })),
+          choices: beforeChoices,
         });
       } catch (err) {
         const selectionError = err instanceof Error ? err.message : String(err);

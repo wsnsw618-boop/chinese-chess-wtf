@@ -2,6 +2,19 @@
 
 本项目的重要变更记录在此。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [Semantic Versioning](https://semver.org/)。
 
+## [1.2.1] - 2026-10-26
+
+### Added
+
+- 先攻（红方）获胜局的开局重复率指标：首步、前 3/5 半回合、红方前 3/5 手的唯一数、重复率、最高频占比、熵。
+- `--selection` / `--red-selection` / `--black-selection`：natural / random / tiger / dragon 升变策略，用于实验 C。
+- 1000 局 pilot-003、multi-agent screen、强制升变 A/B、第二轮汇总报告。
+
+### Fixed
+
+- 限制回合过滤掉所有合法着法时，不再出现“无合法着法但无结果”的挂起状态；现在立即按 `duelMate` 判负。
+- Simulation 选子日志记录的是升变前的棋子，而不是升变后的目标。
+
 ## [1.2.0] - 2026-10-25
 
 ### Changed

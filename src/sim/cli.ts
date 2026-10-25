@@ -4,7 +4,7 @@ import { parseAgentSpec } from './agents';
 import { summarize } from './metrics';
 import { renderReport } from './report';
 import { playGame } from './runner';
-import type { GameRecord, RunConfig } from './types';
+import type { GameRecord, RunConfig, SelectionMode } from './types';
 
 function usage(): string {
   return `中国象棋WTF版 batch simulator
@@ -18,6 +18,9 @@ Options:
   --red <agent>      red agent: random | greedy | search:2 | search:2:60
   --black <agent>    black agent (default: same as red)
   --max-plies <n>    Guard against unfinished games (default: 600)
+  --selection <mode> natural | random | tiger | dragon (both sides, default: natural)
+  --red-selection <mode>   override red side selection
+  --black-selection <mode> override black side selection
   --out <dir>        Output directory (default: sim/results/pilot)
   --report <file>    Markdown report path (default: reports/pilot-latest.md)
   --from <file>      Rebuild summary/report from an existing games.jsonl
@@ -30,6 +33,9 @@ interface Args {
   games: number;
   seed: number;
   maxPlies: number;
+  selection: SelectionMode;
+  selectionRed?: SelectionMode;
+  selectionBlack?: SelectionMode;
   red: string;
   black: string;
   outDir: string;
@@ -43,6 +49,7 @@ function parseArgs(argv: string[]): Args | null {
     games: 200,
     seed: 20261025,
     maxPlies: 600,
+    selection: 'natural',
     red: 'search:2:60',
     black: 'search:2:60',
     outDir: 'sim/results/pilot',
@@ -74,6 +81,24 @@ function parseArgs(argv: string[]): Args | null {
         break;
       case '--max-plies':
         args.maxPlies = Number(value);
+        break;
+      case '--selection':
+        if (!['natural', 'random', 'tiger', 'dragon'].includes(value)) {
+          throw new Error('--selection must be natural, random, tiger or dragon');
+        }
+        args.selection = value as SelectionMode;
+        break;
+      case '--red-selection':
+        if (!['natural', 'random', 'tiger', 'dragon'].includes(value)) {
+          throw new Error('--red-selection must be natural, random, tiger or dragon');
+        }
+        args.selectionRed = value as SelectionMode;
+        break;
+      case '--black-selection':
+        if (!['natural', 'random', 'tiger', 'dragon'].includes(value)) {
+          throw new Error('--black-selection must be natural, random, tiger or dragon');
+        }
+        args.selectionBlack = value as SelectionMode;
         break;
       case '--out':
         args.outDir = value;
@@ -146,6 +171,9 @@ function main(): void {
     maxPlies: args.maxPlies,
     red,
     black,
+    selection: args.selection,
+    selectionRed: args.selectionRed ?? args.selection,
+    selectionBlack: args.selectionBlack ?? args.selection,
     outDir: args.outDir,
     reportPath: args.reportPath,
   };
@@ -172,6 +200,8 @@ function main(): void {
       black,
       config.seed,
       index,
+      config.selectionRed,
+      config.selectionBlack,
       config.maxPlies,
     );
     records.push(record);

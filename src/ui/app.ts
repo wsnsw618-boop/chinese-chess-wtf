@@ -19,7 +19,7 @@ import rulebookHtml from '../rulebook/rulebook.html?raw';
 import { BoardView, DuelHighlight } from './boardView';
 import { SoundManager } from './sound';
 
-const VERSION = '1.2.0';
+const VERSION = '1.2.1';
 
 interface Settings {
   sound: boolean;

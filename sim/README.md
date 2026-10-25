@@ -28,6 +28,31 @@ npm run simulate:pilot
 
 批量实验优先使用固定深度，避免纯时间限制导致结果不可复现。
 
+## 升变选子策略
+
+`--selection` 用于实验 C：
+
+| 值 | 说明 |
+|---|---|
+| `natural` | 使用 agent 的自然选子（默认） |
+| `random` | 随机 0–2 个棋子/目标 |
+| `tiger` | 强制选车+斜一步（红虎/黑坦） |
+| `dragon` | 强制选龙/仙 |
+
+示例：
+
+```powershell
+npm run simulate -- --games 200 --red search:2:60 --black search:2:60 --selection tiger --out sim/results/selection-tiger --report reports/selection-tiger.md
+```
+
+强制选子仍会经过“第一选方不能将军未行棋方”的合法性检查；被拒绝的选择会记入 `rejectedSelections`。
+
+非对称实验使用：
+
+```powershell
+npm run simulate -- --games 200 --red search:2:60 --black search:2:60 --red-selection tiger --black-selection dragon --out sim/results/selection-redtiger-blackdragon --report reports/selection-redtiger-blackdragon.md
+```
+
 ## 输出
 
 ```text
