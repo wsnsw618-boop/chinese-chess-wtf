@@ -1,0 +1,27 @@
+# dependencies
+node_modules/
+
+# build output (use GitHub Pages / Releases)
+dist/
+release/
+coverage/
+.vite/
+
+# local env and logs
+.env
+.env.*
+*.log
+*.tmp
+
+# simulation output (reports/ is tracked when useful)
+sim/results/
+
+# editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# private docs
+/reports/*
+!/reports/balance-v1.5.1-recommended-openings.md

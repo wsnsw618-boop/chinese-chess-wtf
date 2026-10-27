@@ -1,0 +1,10 @@
+{
+  "games": 20,
+  "seed": 20261026,
+  "red": "expert",
+  "black": "expert",
+  "maxPlies": 600,
+  "openingBook": true,
+  "redSelection": "natural",
+  "blackSelection": "natural"
+}
