@@ -33,7 +33,7 @@
     "package": "npm run build && npm run pdf && node scripts/package.mjs"
   },
   "devDependencies": {
-    "@types/node": "^26.6.5",
+    "@types/node": "^26.6.6",
     "playwright-core": "^1.64.1",
     "tsx": "^4.23.15",
     "typescript": "^5.9.3",
